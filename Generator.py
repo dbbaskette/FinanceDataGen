@@ -230,8 +230,8 @@ def cliParse():
     args = parser.parse_args()
 
     if (args.subparser_name == "all"):
-        numCustomers = args.numCustomers
-        numTransactions = args.numTransactions
+        numCustomers = int(args.numCustomers)
+        numTransactions = int(args.numTransactions)
         return numCustomers,numTransactions
 
 
