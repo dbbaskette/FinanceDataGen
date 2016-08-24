@@ -11,6 +11,9 @@ import queries
 from logging.handlers import SysLogHandler
 import logging
 import requests
+import os
+from dotenv import load_dotenv
+
 
 
 seedCustomerNumber = 40000
@@ -34,14 +37,18 @@ def addCustomerRedis(r,customerNum,customer):
     r.hset(customerNum, "birthDate", customer[12])
     r.hset(customerNum, "age", customer[13])
     r.hset(customerNum, "email", customer[14])
+    r.hset(customerNum, "sex", customer[15])
+    r.hset(customerNum, "job", customer[16])
+    r.hset(customerNum, "married", customer[17])
+    r.hset(customerNum, "balance", customer[18])
 
 
 def loadCustomerTable():
     print "Loading Customer Table in Database"
-    dbURI = queries.uri("spiderman", port=5432, dbname="gpadmin", user="gpadmin", password="gpadmin")
+    dbURI = queries.uri(os.environ.get("DBHOST"), port=os.environ.get("DBPORT"), dbname="gpadmin", user="gpadmin", password="gpadmin")
     with queries.Session(dbURI) as session:
         result = session.query("drop table if exists customers;")
-        result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),birthDate date,age int,email text) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
+        result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),birthDate date,age int,email text,sex char,job text,married smallint,balance float) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
         with open('./data/customers.csv') as csvfile:
             reader = csv.reader(csvfile)
             for row in reader:
@@ -78,6 +85,21 @@ def buildCustomer(sex,custNumber):
     customer.append(datetime.datetime.date(birthDate))
     customer.append(math.trunc((ageTemp.days + ageTemp.seconds / 86400) / 365.2425))
     customer.append(firstName[0]+lastName+"@"+fake.free_email_domain())
+    customer.append(sex)
+    customer.append(fake.job())
+    customer.append(random.randint(0, 1))  # Married
+    customer.append(float(fake.numerify("#" + transactionSize(1))))  # BALANCE
+
+    # Eventually Add Banking Campain Data
+    #customer.append(random.randint(0, 1))  # Housing
+    #customer.append(random.randint(0, 1))  # Loan
+    #customer.append(random.randint(0, 1))  # last contact
+    #customer.append(random.randint(1, 10))  # campaign contacts
+    #customer.append(random.randint(0, 1))  # days since last contact (toda
+    #customer.append(random.randint(0, 2))  # campaign outcome (0-1-2 failure,nonexist,success)
+    
+
+
 
     return customer
 
@@ -89,7 +111,7 @@ def outputCustomers(customers):
 
 
 def addAddressesRedis():
-    r = redis.Redis(host='localhost', port=6379, db=1)
+    r = redis.Redis(host=os.environ.get("GENHOST"), port=6379, db=1)
     r.flushdb()
     with open('./data/zipcodes.csv') as csvfile:
         reader = csv.reader(csvfile)
@@ -104,7 +126,7 @@ def addAddressesRedis():
 
 
 def getAddress(zipCode=0):
-    r = redis.Redis(host='localhost', port=6379, db=1)
+    r = redis.Redis(host=os.environ.get("GENHOST"), port=6379, db=1)
     if zipCode==0:
         zipCode = r.randomkey()
     city = r.hget(zipCode,"city")
@@ -119,7 +141,7 @@ def getAddress(zipCode=0):
 
 def buildTransaction(numCustomers):
     fake = Faker()
-    r0 = redis.Redis(host='localhost', port=6379, db=0)
+    r0 = redis.Redis(host=os.environ.get("GENHOST"), port=6379, db=0)
     numCustomers = r0.dbsize()
     custNumber = seedCustomerNumber+random.randint(1,numCustomers)
     #custNumber = 40005
@@ -145,14 +167,20 @@ def buildTransaction(numCustomers):
     transaction.append(float(latitude))
     transaction.append(float(longitude))
     transaction.append(datetime.datetime.now())
-    transaction.append(float(fake.numerify(transactionSize())))
+    if transactionLocation==1:
+        transaction.append(float(fake.numerify(transactionSize(6))))
+    else:
+        transaction.append(float(fake.numerify(transactionSize(1))))
+
     return transaction
 
-def transactionSize():
-    size = random.randint(1,11)
+def transactionSize(start):
+    size = random.randint(start,10)
     if size==10:
-        return "####.##"
-    elif (size>6):
+        return "#####.##"
+    elif (size==9):
+        return "###.##"
+    elif (size>5):
         return "###.##"
     elif (size>1):
         return "##.##"
@@ -167,9 +195,11 @@ def generateTransactions(numTransactions,numCustomers):
     while not complete:
 
         transaction = buildTransaction(numCustomers)
-        print transaction[0]
         logging.info(transaction)
-        r = requests.post("http://localhost:9000",data={transaction[0]:transaction})
+        postURL="http://"+os.environ.get("POSTSERVER")+":"+os.environ.get("POSTPORT")
+        r = requests.post(postURL,data={transaction[0]:transaction})
+
+        print r.status_code
         print r.text
         transactionCount+=1
         if transactionCount==numTransactions:
@@ -184,16 +214,16 @@ def generateTransactions(numTransactions,numCustomers):
 
 
 if __name__ == '__main__':
-
+    dotenv_path = "./config/config.env"
+    load_dotenv(dotenv_path)
     logger = logging.getLogger()
-    logger.addHandler(SysLogHandler(address=('localhost', 1514)))
+    #logger.addHandler(SysLogHandler(address=(os.environ.get("DBHOST"), 1514)))
     logger.setLevel(logging.INFO)
 
-
-    numCustomers=10
+    numCustomers=40
     customers=[]
     addAddressesRedis()
-    r = redis.Redis(host='localhost', port=6379, db=0)
+    r = redis.Redis(host=os.environ.get("GENHOST"), port=6379, db=0)
     r.flushdb()
 
     for x in range(1,numCustomers+1):
@@ -209,7 +239,7 @@ if __name__ == '__main__':
 
 
     #loadCustomerTable()
-    generateTransactions(10, numCustomers)
+    generateTransactions(20, numCustomers)
 
 
 
