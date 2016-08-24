@@ -173,7 +173,11 @@ def buildTransaction(numCustomers):
     else:
         transaction.append(float(fake.numerify(transactionSize(1))))
 
-    return json.dumps(transaction)
+    #return json.dumps(transaction)
+
+
+    return transaction
+
 
 def transactionSize(start):
     size = random.randint(start,10)
@@ -197,8 +201,11 @@ def generateTransactions(numTransactions,numCustomers):
 
         transaction = buildTransaction(numCustomers)
         #logging.info(transaction)
+
+        data = { transaction[0]:transaction }
+        headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
         postURL="http://"+os.environ.get("POSTSERVER")+":"+os.environ.get("POSTPORT")
-        r = requests.post(postURL,data={transaction[0]:transaction})
+        r = requests.post(postURL,data=data)
         transactionCount+=1
         if transactionCount==numTransactions:
             complete=True
@@ -236,7 +243,7 @@ if __name__ == '__main__':
 
 
 
-    loadCustomerTable()
+    #loadCustomerTable()
     generateTransactions(20, numCustomers)
 
 
