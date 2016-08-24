@@ -204,7 +204,7 @@ def generateTransactions(numTransactions,numCustomers):
         #logging.info(transaction)
         postURL = "http://" + os.environ.get("POSTSERVER") + ":" + os.environ.get("POSTPORT")
         headers = {'Content-type': 'application/json'}
-        r = requests.post(postURL, data=json.dumps({transaction[0]: transaction}), headers=headers)
+        r = requests.post(postURL, data=json.dumps({"CCTRANS": transaction}), headers=headers)
         transactionCount+=1
         if transactionCount==numTransactions:
             complete=True
