@@ -13,6 +13,7 @@ import logging
 import requests
 import os
 from dotenv import load_dotenv
+import json
 
 
 
@@ -86,7 +87,7 @@ def buildCustomer(sex,custNumber):
     customer.append(math.trunc((ageTemp.days + ageTemp.seconds / 86400) / 365.2425))
     customer.append(firstName[0]+lastName+"@"+fake.free_email_domain())
     customer.append(sex)
-    customer.append(fake.job())
+    customer.append((fake.job()).translate(None, "'"))
     customer.append(random.randint(0, 1))  # Married
     customer.append(float(fake.numerify("#" + transactionSize(1))))  # BALANCE
 
@@ -97,7 +98,7 @@ def buildCustomer(sex,custNumber):
     #customer.append(random.randint(1, 10))  # campaign contacts
     #customer.append(random.randint(0, 1))  # days since last contact (toda
     #customer.append(random.randint(0, 2))  # campaign outcome (0-1-2 failure,nonexist,success)
-    
+
 
 
 
@@ -166,13 +167,13 @@ def buildTransaction(numCustomers):
     transaction.append(zipCode)
     transaction.append(float(latitude))
     transaction.append(float(longitude))
-    transaction.append(datetime.datetime.now())
+    transaction.append(str(datetime.datetime.now()))
     if transactionLocation==1:
         transaction.append(float(fake.numerify(transactionSize(6))))
     else:
         transaction.append(float(fake.numerify(transactionSize(1))))
 
-    return transaction
+    return json.dumps(transaction)
 
 def transactionSize(start):
     size = random.randint(start,10)
@@ -195,12 +196,9 @@ def generateTransactions(numTransactions,numCustomers):
     while not complete:
 
         transaction = buildTransaction(numCustomers)
-        logging.info(transaction)
+        #logging.info(transaction)
         postURL="http://"+os.environ.get("POSTSERVER")+":"+os.environ.get("POSTPORT")
         r = requests.post(postURL,data={transaction[0]:transaction})
-
-        print r.status_code
-        print r.text
         transactionCount+=1
         if transactionCount==numTransactions:
             complete=True
