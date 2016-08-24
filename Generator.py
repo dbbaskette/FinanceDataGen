@@ -14,6 +14,7 @@ import requests
 import os
 from dotenv import load_dotenv
 import json
+import argparse
 
 
 
@@ -201,11 +202,9 @@ def generateTransactions(numTransactions,numCustomers):
 
         transaction = buildTransaction(numCustomers)
         #logging.info(transaction)
-
-        data = { transaction[0]:transaction }
-        headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-        postURL="http://"+os.environ.get("POSTSERVER")+":"+os.environ.get("POSTPORT")
-        r = requests.post(postURL,data=data)
+        postURL = "http://" + os.environ.get("POSTSERVER") + ":" + os.environ.get("POSTPORT")
+        headers = {'Content-type': 'application/json'}
+        r = requests.post(postURL, data=json.dumps({transaction[0]: transaction}), headers=headers)
         transactionCount+=1
         if transactionCount==numTransactions:
             complete=True
@@ -216,16 +215,42 @@ def generateTransactions(numTransactions,numCustomers):
 #        Query Table to get a user and generate a transaction mostly in own territor
 # FROM CUSTOMER NUMBER, LAT,LONG,CC#  then add itemdesc,category,amount,timestamp,companyname,lat,long
 
+def cliParse():
+    VALID_ACTION = ["all","trans"]
+    parser = argparse.ArgumentParser(description='Financial Data Generator')
+    subparsers = parser.add_subparsers(help='sub-command help', dest="subparser_name")
+    parser_all = subparsers.add_parser("all", help="Run Database creation and Gen Transactions")
+    parser_transactions = subparsers.add_parser("trans", help="Generate Transactions")
+
+
+    parser_all.add_argument("--customers", dest='numCustomers', action="store",help="Number of Customers to Crea†e",required=True)
+    parser_all.add_argument("--name", dest='numTransaction', action="store",help="Number of Transactions to Generate",required=True)
+
+
+    args = parser.parse_args()
+
+    if (args.subparser_name == "all"):
+        numCustomers = args.numCustomers
+        numTransactions = args.numTransactions
+        return numCustomers,numTransactions
+
+
+    elif (args.type == "trans"):
+            print "Not Yet Implemented"
+
 
 
 if __name__ == '__main__':
+
+    numCustomers,numTransactions=cliParse()
+
     dotenv_path = "./config/config.env"
     load_dotenv(dotenv_path)
     logger = logging.getLogger()
     #logger.addHandler(SysLogHandler(address=(os.environ.get("DBHOST"), 1514)))
     logger.setLevel(logging.INFO)
 
-    numCustomers=40
+    #numCustomers=40
     customers=[]
     addAddressesRedis()
     r = redis.Redis(host=os.environ.get("GENHOST"), port=6379, db=0)
@@ -243,8 +268,8 @@ if __name__ == '__main__':
 
 
 
-    #loadCustomerTable()
-    generateTransactions(20, numCustomers)
+    loadCustomerTable()
+    generateTransactions(numTransactions, numCustomers)
 
 
 
