@@ -224,7 +224,7 @@ def cliParse():
 
 
     parser_all.add_argument("--cust", dest='numCustomers', action="store",help="Number of Customers to Create",required=True)
-    parser_all.add_argument("--trans", dest='numTransaction', action="store",help="Number of Transactions to Generate",required=True)
+    parser_all.add_argument("--trans", dest='numTransactions', action="store",help="Number of Transactions to Generate",required=True)
 
 
     args = parser.parse_args()
