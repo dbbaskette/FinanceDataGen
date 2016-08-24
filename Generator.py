@@ -236,7 +236,7 @@ if __name__ == '__main__':
 
 
 
-    #loadCustomerTable()
+    loadCustomerTable()
     generateTransactions(20, numCustomers)
 
 
