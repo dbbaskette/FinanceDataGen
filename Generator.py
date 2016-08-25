@@ -90,7 +90,10 @@ def buildCustomer(sex,custNumber):
     customer.append(sex)
     customer.append((fake.job()).translate(None, "'"))
     customer.append(random.randint(0, 1))  # Married
-    customer.append(float(fake.numerify("#" + transactionSize(1))))  # BALANCE
+
+
+    # SHOULD  BELL CURVE THIS
+    customer.append(float(fake.numerify(transactionSize(1))))  # BALANCE
 
     # Eventually Add Banking Campain Data
     #customer.append(random.randint(0, 1))  # Housing
@@ -169,26 +172,29 @@ def buildTransaction(numCustomers):
     transaction.append(float(latitude))
     transaction.append(float(longitude))
     transaction.append(str(datetime.datetime.now()))
-    if transactionLocation==1:
-        transaction.append(float(fake.numerify(transactionSize(6))))
-    else:
-        transaction.append(float(fake.numerify(transactionSize(1))))
+
+    transaction.append(float(fake.numerify(text=transactionSize(1))))
+
+    #if transactionLocation==1:
+    #    transaction.append(float(fake.numerify(transactionSize(6))))
+    #else:
+    #   transaction.append(float(fake.numerify(transactionSize(1))))
 
     #return json.dumps(transaction)
 
 
     return transaction
 
-
+#MANUAL BELL CURVE - USE NUMPY
 def transactionSize(start):
-    size = random.randint(start,10)
-    if size==10:
-        return "#####.##"
-    elif (size==9):
+    size = random.randint(start,100)
+    if size>90:
+        return "####.##"
+    elif (size>=70):
         return "###.##"
-    elif (size>5):
+    elif (size>30):
         return "###.##"
-    elif (size>1):
+    elif (size>10):
         return "##.##"
     else :
         return "#.##"
@@ -204,7 +210,7 @@ def generateTransactions(numTransactions,numCustomers):
         #logging.info(transaction)
         postURL = "http://" + os.environ.get("POSTSERVER") + ":" + os.environ.get("POSTPORT")
         headers = {'Content-type': 'application/json'}
-        r = requests.post(postURL, data=json.dumps({"CCTRANS": transaction}), headers=headers)
+        #r = requests.post(postURL, data=json.dumps({"CCTRANS": transaction}), headers=headers)
         transactionCount+=1
         if transactionCount==numTransactions:
             complete=True
@@ -268,7 +274,7 @@ if __name__ == '__main__':
 
 
 
-    loadCustomerTable()
+    #loadCustomerTable()
     generateTransactions(numTransactions, numCustomers)
 
 
