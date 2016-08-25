@@ -49,13 +49,26 @@ def loadCustomerTable():
     print "Loading Customer Table in Database"
     dbURI = queries.uri(os.environ.get("DBHOST"), port=os.environ.get("DBPORT"), dbname="gpadmin", user="gpadmin", password="gpadmin")
     with queries.Session(dbURI) as session:
-        result = session.query("drop table if exists customers;")
+        result = session.query("drop table if exists customers CASCADE ;")
         result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),birthDate date,age int,email text,sex char,job text,married smallint,balance float) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
         with open('./data/customers.csv') as csvfile:
             reader = csv.reader(csvfile)
             for row in reader:
                 rowString = "'"+"','".join(row)+"'"
                 result = session.query("insert into customers VALUES ("+rowString+");")
+
+def buildTransactionTables():
+    print "Adding Tables and Views in Database"
+    dbURI = queries.uri(os.environ.get("DBHOST"), port=os.environ.get("DBPORT"), dbname="gpadmin", user="gpadmin",
+                        password="gpadmin")
+    with queries.Session(dbURI) as session:
+        result = session.query("drop table if exists transactions CASCADE ;")
+        result = session.query("drop external table if exists transactions_pxf CASCADE ;")
+        result = session.query("drop view if exists suspect CASCADE ;")
+
+        result = session.query("create table transactions(customernum integer,city text,state char(2),zip integer,latitude float,longitude float,time timestamp,amount float) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
+        result = session.query("create table transactions_pxf(customernum integer,city text,state char(2),zip integer,latitude float,longitude float,time timestamp,amount float) LOCATION ('pxf://localhost:51200/scdf/*.txt?PROFILE=HDFSTextSimple');")
+        result = session.query("SELECT c.latitude AS clat, c.longitude AS clong, t.latitude AS tlat, t.longitude AS tlong, c.balance, t.amount FROM transactions t, customers c WHERE c.customernum = t.customernum AND c.latitude <> t.latitude AND c.longitude <> t.longitude;")
 
 def buildCustomer(sex,custNumber):
     fake = Faker()
@@ -81,6 +94,9 @@ def buildCustomer(sex,custNumber):
     customer.append(fake.credit_card_number())
     customer.append(fake.phone_number())
     customer.append(fake.ssn())
+
+    
+
 
     birthDate = fake.date_time_between_dates(datetime_start=datetime.date(1920,1,1), datetime_end=datetime.datetime.now() - timedelta(days=math.trunc(18*365.2425)), tzinfo=None)
     ageTemp = datetime.datetime.now() - birthDate
@@ -276,7 +292,7 @@ if __name__ == '__main__':
 
     loadCustomerTable()
     generateTransactions(numTransactions, numCustomers)
-
+    buildTransactionTables()
 
 
     #outputCustomers(customers)
