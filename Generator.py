@@ -67,7 +67,7 @@ def buildTransactionTables():
         result = session.query("drop view if exists suspect CASCADE ;")
 
         result = session.query("create table transactions(customernum integer,city text,state char(2),zip integer,latitude float,longitude float,time timestamp,amount float) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
-        result = session.query("create table transactions_pxf(customernum integer,city text,state char(2),zip integer,latitude float,longitude float,time timestamp,amount float) LOCATION ('pxf://localhost:51200/scdf/*.txt?PROFILE=HDFSTextSimple');")
+        result = session.query("create table transactions_pxf(customernum integer,city text,state char(2),zip integer,latitude float,longitude float,time timestamp,amount float) LOCATION ('pxf://"+os.environ.get("DBHOST")+":51200/scdf/*.txt?PROFILE=HDFSTextSimple');")
         result = session.query("SELECT c.latitude AS clat, c.longitude AS clong, t.latitude AS tlat, t.longitude AS tlong, c.balance, t.amount FROM transactions t, customers c WHERE c.customernum = t.customernum AND c.latitude <> t.latitude AND c.longitude <> t.longitude;")
 
 def buildCustomer(sex,custNumber):
@@ -95,7 +95,8 @@ def buildCustomer(sex,custNumber):
     customer.append(fake.phone_number())
     customer.append(fake.ssn())
 
-    
+    #mu, sigma = 0, 0.1  # mean and standard deviation
+    #s = np.random.normal(mu, sigma, 1000)
 
 
     birthDate = fake.date_time_between_dates(datetime_start=datetime.date(1920,1,1), datetime_end=datetime.datetime.now() - timedelta(days=math.trunc(18*365.2425)), tzinfo=None)
@@ -120,7 +121,7 @@ def buildCustomer(sex,custNumber):
     #customer.append(random.randint(0, 2))  # campaign outcome (0-1-2 failure,nonexist,success)
 
 
-
+    print customer
 
     return customer
 
@@ -290,12 +291,12 @@ if __name__ == '__main__':
 
 
 
-    loadCustomerTable()
+    #loadCustomerTable()
     generateTransactions(numTransactions, numCustomers)
-    buildTransactionTables()
+    #buildTransactionTables()
 
 
-    #outputCustomers(customers)
+    outputCustomers(customers)
     #getCustomer()
 
 
