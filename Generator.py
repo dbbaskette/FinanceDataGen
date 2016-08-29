@@ -15,6 +15,9 @@ import os
 from dotenv import load_dotenv
 import json
 import argparse
+import numpy as np
+import scipy.stats as stats
+import random
 
 
 
@@ -36,13 +39,36 @@ def addCustomerRedis(r,customerNum,customer):
     r.hset(customerNum, "cardNum", customer[9])
     r.hset(customerNum, "phone", customer[10])
     r.hset(customerNum, "ssn", customer[11])
-    r.hset(customerNum, "birthDate", customer[12])
-    r.hset(customerNum, "age", customer[13])
-    r.hset(customerNum, "email", customer[14])
-    r.hset(customerNum, "sex", customer[15])
-    r.hset(customerNum, "job", customer[16])
-    r.hset(customerNum, "married", customer[17])
-    r.hset(customerNum, "balance", customer[18])
+    #r.hset(customerNum, "birthDate", customer[12])
+    r.hset(customerNum, "age", customer[12])
+    r.hset(customerNum, "email", customer[13])
+    r.hset(customerNum, "sex", customer[14])
+    r.hset(customerNum, "job", customer[15])
+    r.hset(customerNum, "married", customer[16])
+    r.hset(customerNum, "balance", customer[17])
+    r.hset(customerNum, "accountStatus", customer[16])
+    r.hset(customerNum, "accountDuration", customer[17])
+    r.hset(customerNum, "creditHistory", customer[18])
+    r.hset(customerNum, "purpose", customer[19])
+    #r.hset(customerNum, "creditBalance", customer[20])
+    r.hset(customerNum, "savingsBalance", customer[21])
+    r.hset(customerNum, "employmentStatus", customer[22])
+    r.hset(customerNum, "creditPercentage", customer[23])
+    # banking["sex"] = r.hget(customerNumber, "sex")
+    # banking["maritalStatus"] = r.hget(customerNumber, "maritalStatus")
+    r.hset(customerNum, "otherDebtors", customer[25])
+    r.hset(customerNum, "presentResidenceSince", customer[26])
+    r.hset(customerNum, "property", customer[27])
+    # banking["age"] = r.hget(customerNumber, "age")
+    r.hset(customerNum, "otherinstallmentCredit", customer[28])
+    r.hset(customerNum, "housingStatus", customer[29])
+    r.hset(customerNum, "otherCredit", customer[30])
+    r.hset(customerNum, "employmentType", customer[31])
+    r.hset(customerNum, "dependents", customer[32])
+    r.hset(customerNum, "telephoneAvail", customer[33])
+    r.hset(customerNum, "foreignWorker", customer[34])
+
+
 
 
 def loadCustomerTable():
@@ -50,7 +76,10 @@ def loadCustomerTable():
     dbURI = queries.uri(os.environ.get("DBHOST"), port=os.environ.get("DBPORT"), dbname="gpadmin", user="gpadmin", password="gpadmin")
     with queries.Session(dbURI) as session:
         result = session.query("drop table if exists customers CASCADE ;")
-        result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),birthDate date,age int,email text,sex char,job text,married smallint,balance float) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
+        #result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),age int,email text,sex char,job text,married smallint,balance float) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
+        #result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),age int,email text,sex char,job text,married smallint,balance float,accountStatus text,accountDuration int,creditHistory text,purpose text,savingsBalance float,employmentStatus text,creditPercentage int,otherDebtors text,presentResidenceSince int, property text,otherInstallmentCedit text,otherCredit int,employmentType text,dependents int, telephoneAvail int,foreignWorker int) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
+        result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),age int,email text,sex char,job text,married smallint,balance float,accountStatus text,accountDuration int,creditHistory text,purpose text,savingsBalance float,employmentStatus text,creditPercentage int,otherDebtors text,presentResidenceSince int, property text,otherInstallmentCedit text,housingStatus text,otherCredit int,employmentType text,dependents int,telephoneAvail int,foreignWorker int) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
+
         with open('./data/customers.csv') as csvfile:
             reader = csv.reader(csvfile)
             for row in reader:
@@ -70,11 +99,133 @@ def buildTransactionTables():
         result = session.query("create table transactions_pxf(customernum integer,city text,state char(2),zip integer,latitude float,longitude float,time timestamp,amount float) LOCATION ('pxf://"+os.environ.get("DBHOST")+":51200/scdf/*.txt?PROFILE=HDFSTextSimple');")
         result = session.query("SELECT c.latitude AS clat, c.longitude AS clong, t.latitude AS tlat, t.longitude AS tlong, c.balance, t.amount FROM transactions t, customers c WHERE c.customernum = t.customernum AND c.latitude <> t.latitude AND c.longitude <> t.longitude;")
 
-def buildCustomer(sex,custNumber):
+def loadBankingData():
+    r = redis.Redis(host=os.environ.get("GENHOST"), port=6379, db=3)
+    with open('./data/german.data') as csvfile:
+        reader = csv.reader(csvfile)
+        rowNumber = 0
+        for parsedRow in reader:
+            r.hset(rowNumber, "accountStatus", parsedRow[0].strip())
+            r.hset(rowNumber, "accountDuration", parsedRow[1].strip())
+            r.hset(rowNumber, "creditHistory", parsedRow[2].strip())
+            r.hset(rowNumber, "purpose", parsedRow[3].strip())
+            r.hset(rowNumber, "creditBalance", int(parsedRow[4].strip())+np.round(np.random.randint(1,99)/100.00,2))
+            #r.hset(rowNumber, "savingsBalance", parsedRow[5].strip())
+            change = np.round(np.random.randint(1,99)/100.00,2)
+
+
+            if parsedRow[5].strip()=="A61":
+                r.hset(rowNumber,"savingsBalance",np.random.randint(1,100)+change)
+            elif parsedRow[5].strip()=="A62":
+                r.hset(rowNumber,"savingsBalance",np.random.randint(100,500)+change)
+            elif parsedRow[5].strip()=="A63":
+                r.hset(rowNumber,"savingsBalance",np.random.randint(500,1000)+change)
+            elif parsedRow[5].strip()=="A64":
+                r.hset(rowNumber,"savingsBalance",np.random.randint(1000,10000)+change)
+            elif parsedRow[5].strip() == "A65":
+                r.hset(rowNumber, "savingsBalance", 0.00)
+
+
+
+
+            if parsedRow[6].strip()=="A71":
+                r.hset(rowNumber, "employmentStatus", "0")
+            elif parsedRow[6].strip()=="A72":
+                r.hset(rowNumber, "employmentStatus", "1")
+            elif parsedRow[6].strip() == "A73":
+                r.hset(rowNumber, "employmentStatus", np.random.randint(1,4))
+            elif parsedRow[6].strip() == "A74":
+                r.hset(rowNumber, "employmentStatus", np.random.randint(4,7))
+            elif parsedRow[6].strip() == "A75":
+                r.hset(rowNumber, "employmentStatus", np.random.randint(7,30))
+
+
+            r.hset(rowNumber, "creditPercentage", parsedRow[7].strip())
+            # Parse this into 2
+
+            if parsedRow[8].strip()=="A91":
+                r.hset(rowNumber, "sex", "0")
+                r.hset(rowNumber, "maritalStatus", "2")
+            elif parsedRow[8].strip()=="A92":
+                r.hset(rowNumber, "sex", "1")
+                r.hset(rowNumber, "maritalStatus", "1")
+            elif parsedRow[8].strip()=="A93":
+                r.hset(rowNumber, "sex", "0")
+                r.hset(rowNumber, "maritalStatus", "0")
+            elif parsedRow[8].strip()=="A94":
+                r.hset(rowNumber, "sex", "0")
+                r.hset(rowNumber, "maritalStatus", "1")
+            elif parsedRow[8].strip()=="A95":
+                r.hset(rowNumber, "sex", "1")
+                r.hset(rowNumber, "maritalStatus", "0")
+
+            if parsedRow[9].strip()=="A101":
+                r.hset(rowNumber, "otherDebtors", "0")
+            elif parsedRow[9].strip()=="A102":
+                r.hset(rowNumber, "otherDebtors", "1")
+            else:
+                r.hset(rowNumber, "otherDebtors", "2")
+
+
+            r.hset(rowNumber, "presentResidenceSince", parsedRow[10].strip())
+            r.hset(rowNumber, "property", parsedRow[11].strip())
+            r.hset(rowNumber, "age", parsedRow[12].strip())
+            r.hset(rowNumber, "otherinstallmentCredit", parsedRow[13].strip())
+            r.hset(rowNumber, "housingStatus", parsedRow[14].strip())
+            r.hset(rowNumber, "otherCredit", parsedRow[15].strip())
+            r.hset(rowNumber, "employmentType", parsedRow[16].strip())
+            r.hset(rowNumber, "dependents", parsedRow[17].strip())
+            #r.hset(rowNumber, "telephoneAvail", parsedRow[18].strip())
+            if parsedRow[18].strip()=="A191":
+                r.hset(rowNumber, "telephoneAvail", "0")
+            elif parsedRow[18].strip()=="A192":
+                r.hset(rowNumber, "telephoneAvail", "1")
+            #r.hset(rowNumber, "foreignWorker", parsedRow[19].strip())
+            if parsedRow[19].strip()=="A201":
+                r.hset(rowNumber, "foreignWorker", "0")
+            elif parsedRow[19].strip()=="A202":
+                r.hset(rowNumber, "foreignWorker", "1")
+            rowNumber+=1
+
+def getBankingData(customerNumber):
+    r = redis.Redis(host=os.environ.get("GENHOST"), port=6379, db=3)
+    banking= {}
+    banking["accountStatus"] = r.hget(customerNumber,"accountStatus")
+    banking["accountDuration"] = r.hget(customerNumber,"accountDuration")
+    banking["creditHistory"] = r.hget(customerNumber,"creditHistory")
+    banking["purpose"] = r.hget(customerNumber,"purpose")
+    banking["creditBalance"] = r.hget(customerNumber,"creditBalance")
+    banking["savingsBalance"] = r.hget(customerNumber,"savingsBalance")
+    banking["employmentStatus"] = r.hget(customerNumber,"employmentStatus")
+    banking["creditPercentage"] = r.hget(customerNumber,"creditPercentage")
+    banking["sex"] = r.hget(customerNumber,"sex")
+    banking["maritalStatus"] = r.hget(customerNumber,"maritalStatus")
+    banking["otherDebtors"] = r.hget(customerNumber,"otherDebtors")
+    banking["presentResidenceSince"] = r.hget(customerNumber,"presentResidenceSince")
+    banking["property"] = r.hget(customerNumber,"property")
+    banking["age"] = r.hget(customerNumber,"age")
+    banking["otherinstallmentCredit"] = r.hget(customerNumber,"otherinstallmentCredit")
+    banking["housingStatus"] = r.hget(customerNumber,"housingStatus")
+    banking["otherCredit"] = r.hget(customerNumber,"otherCredit")
+    banking["employmentType"] = r.hget(customerNumber,"employmentType")
+    banking["dependents"] = r.hget(customerNumber,"dependents")
+    banking["telephoneAvail"] = r.hget(customerNumber,"telephoneAvail")
+    banking["foreignWorker"] = r.hget(customerNumber,"foreignWorker")
+
+
+    return banking
+
+
+def buildCustomer(custNumber,age):
     fake = Faker()
     customer=[]
     customer.append(seedCustomerNumber+custNumber)
-    if "m" in sex:
+    if custNumber <= 999:
+        banking=getBankingData(custNumber)
+    else:
+        banking=getBankingData(1000 - custNumber)
+
+    if banking["sex"]=="0":
         firstName = fake.first_name_male()
         customer.append(firstName)
 
@@ -95,35 +246,64 @@ def buildCustomer(sex,custNumber):
     customer.append(fake.phone_number())
     customer.append(fake.ssn())
 
-    #mu, sigma = 0, 0.1  # mean and standard deviation
-    #s = np.random.normal(mu, sigma, 1000)
+    #birthDate = fake.date_time_between_dates(datetime_start=datetime.date(1920,1,1), datetime_end=datetime.datetime.now() - timedelta(days=math.trunc(18*365.2425)), tzinfo=None)
+    #ageTemp = datetime.datetime.now() - birthDate
+    #customer.append(datetime.datetime.date(birthDate))
 
 
-    birthDate = fake.date_time_between_dates(datetime_start=datetime.date(1920,1,1), datetime_end=datetime.datetime.now() - timedelta(days=math.trunc(18*365.2425)), tzinfo=None)
-    ageTemp = datetime.datetime.now() - birthDate
-    customer.append(datetime.datetime.date(birthDate))
-    customer.append(math.trunc((ageTemp.days + ageTemp.seconds / 86400) / 365.2425))
+    customer.append(banking["age"])
+    #customer.append(math.trunc((ageTemp.days + ageTemp.seconds / 86400) / 365.2425))
     customer.append(firstName[0]+lastName+"@"+fake.free_email_domain())
-    customer.append(sex)
+    customer.append(banking["sex"])
     customer.append((fake.job()).translate(None, "'"))
-    customer.append(random.randint(0, 1))  # Married
+    customer.append(banking["maritalStatus"])  # Married
 
 
     # SHOULD  BELL CURVE THIS
-    customer.append(float(fake.numerify(transactionSize(1))))  # BALANCE
+    #customer.append(float(fake.numerify("####.##") )) # BALANCE
+    customer.append(banking["creditBalance"])
 
-    # Eventually Add Banking Campain Data
-    #customer.append(random.randint(0, 1))  # Housing
-    #customer.append(random.randint(0, 1))  # Loan
-    #customer.append(random.randint(0, 1))  # last contact
-    #customer.append(random.randint(1, 10))  # campaign contacts
-    #customer.append(random.randint(0, 1))  # days since last contact (toda
-    #customer.append(random.randint(0, 2))  # campaign outcome (0-1-2 failure,nonexist,success)
+    customer.append(banking["accountStatus"])
+    customer.append(banking["accountDuration"])
+    customer.append(banking["creditHistory"])
+    customer.append(banking["purpose"])
+    customer.append(banking["savingsBalance"])
+    customer.append(banking["employmentStatus"] )
+    customer.append(banking["creditPercentage"])
+    #banking["sex"] = r.hget(customerNumber, "sex")
+    #banking["maritalStatus"] = r.hget(customerNumber, "maritalStatus")
+    customer.append(banking["otherDebtors"]) #10
+    customer.append(banking["presentResidenceSince"]) #11
+    customer.append(banking["property"]) #12
+    #banking["age"] = r.hget(customerNumber, "age")
+    customer.append(banking["otherinstallmentCredit"]) #14
+    customer.append(banking["housingStatus"]) #15
+    customer.append(banking["otherCredit"]) #16
+    customer.append(banking["employmentType"]) #17
+    customer.append(banking["dependents"] )  #18
+    customer.append(banking["telephoneAvail"]) #19
+    customer.append(banking["foreignWorker"]) #20
 
 
-    print customer
 
     return customer
+
+def ageDistribution(numCustomers):
+
+    maxAge = 98  # For a Nice Round Number
+    minAge = 18  # For a Nice Round Number
+    meanVal = (maxAge + minAge) / 2.0
+    stdDev = 10        #23.0976
+    s = stats.truncnorm((minAge - meanVal) / stdDev, (maxAge - meanVal) / stdDev, loc=meanVal, scale=stdDev)
+    return np.round(s.rvs(numCustomers),0).astype(int)
+
+
+def genderDistribution():
+    if (np.random.choice([0, 1], size=1, p=[.494, .506]) == 0):
+        return "m"
+    else:
+        return "f"
+
 
 def outputCustomers(customers):
 
@@ -161,21 +341,23 @@ def getAddress(zipCode=0):
 
 
 
-def buildTransaction(numCustomers):
+def buildTransaction(transactionValue):
+
     fake = Faker()
     r0 = redis.Redis(host=os.environ.get("GENHOST"), port=6379, db=0)
     numCustomers = r0.dbsize()
-    custNumber = seedCustomerNumber+random.randint(1,numCustomers)
-    #custNumber = 40005
+    custNumber = seedCustomerNumber+random.randint(0,numCustomers-1)
     customer = r0.hgetall(custNumber)
     transaction=[]
     transaction.append(custNumber)
 
     # 10% of the time generate a transaction away from home.
     transactionLocation = random.randint(1,11)
+
     if transactionLocation==1:
         city, state, zipCode, latitude, longitude = getAddress(0)
     else:
+
         zipCode = r0.hget(custNumber,"zipCode")
         city = r0.hget(custNumber,"city")
         state = r0.hget(custNumber, "state")
@@ -187,43 +369,75 @@ def buildTransaction(numCustomers):
     transaction.append(state)
     transaction.append(zipCode)
     transaction.append(float(latitude))
+
     transaction.append(float(longitude))
     transaction.append(str(datetime.datetime.now()))
-
-    transaction.append(float(fake.numerify(text=transactionSize(1))))
-
-    #if transactionLocation==1:
-    #    transaction.append(float(fake.numerify(transactionSize(6))))
-    #else:
-    #   transaction.append(float(fake.numerify(transactionSize(1))))
-
-    #return json.dumps(transaction)
-
-
+    transaction.append(float(transactionValue))
     return transaction
 
-#MANUAL BELL CURVE - USE NUMPY
-def transactionSize(start):
-    size = random.randint(start,100)
-    if size>90:
-        return "####.##"
-    elif (size>=70):
-        return "###.##"
-    elif (size>30):
-        return "###.##"
-    elif (size>10):
-        return "##.##"
-    else :
-        return "#.##"
+
+def transactionDistribution(numTransactions):
+    transMax = 10001
+    transMin = 1
+    transMean = 100
+
+
+    # Tried 100 different ways to get what I wanted, but settled on the easiest.
+    # Used a triangular distribution from -4000 - 0 - 10000
+    # Then take abs of the negative numbers which basically folds that portion
+    # of the triangle ontop of the other positives.  This gives me additional
+    # low transaction numbers which helps bring my mean down to a reasonable level.
+
+    values = np.random.triangular(-4000, transMin, transMax, numTransactions)
+    print np.max(values), np.min(values), np.mean(values)
+    return np.round(np.abs(values),2)
+    #stdDev = 1
+    #numSD = 4
+
+    #transQtyUni = transQty*.90
+    #r1Mean = 50
+    #r1 = ((r1Mean*2) - transMin) * np.random.random_sample(transQtyUni) + transMin
+    #print np.max(r1), np.min(r1), np.mean(r1)
+    # meanValue = actualMean / float(maxTransaction)/numSD
+    # print "Mean Distribution",meanValue
+    # s=np.abs(np.random.normal(meanValue, stdDev, numTransactions))
+    # print "size",len(s)
+    # w = s * (maxTransaction - actualMean) / numSD
+    # print np.max(w),np.min(w),np.mean(w)
+    #
+    # # MANUAL DISTRIBUTION
+    #
+    # print  np.random.rand(0,1250)
+
+    # first lets generate a block of random values around the mean (1 std dev)
+    # a, b = (myclip_a - my_mean) / my_std, (myclip_b - my_mean) / my_std
+    #  r = truncnorm.rvs(a, b, size=1000)
+
+    #r = np.abs(np.random.normal(transMean/transQty, stdDev/transQty, transQty))
+    #r = stats.truncnorm.rvs(1, transMean*2, size=100000)
+
+
+    # ##r=r*      # Multiply by Total # Std Deviations to consider 6
+    # print np.max(r), np.min(r), np.mean(r)
+    # r = r*transMax
+    # print np.max(r), np.min(r), np.mean(r)
+    #
+    # r1 = ((transMean) - transMin) * stats.truncnorm.rvs(1, transMean*2, size=100000) + transMin
+    # print np.max(r1), np.min(r1), np.mean(r1)
+
+
+    #rTotal = np.concatenate((r1,r2))
+    #print np.max(rTotal), np.min(rTotal), np.mean(rTotal),len(rTotal)
+
 
 def generateTransactions(numTransactions,numCustomers):
-    print "GENERATE TRANSACTIONS"
+    print "GENERATE TRANSACTION"
     complete = False
     transactionCount=0
-
+    transactionValues = transactionDistribution(numTransactions)
     while not complete:
 
-        transaction = buildTransaction(numCustomers)
+        transaction = buildTransaction(transactionValues[transactionCount])
         #logging.info(transaction)
         postURL = "http://" + os.environ.get("POSTSERVER") + ":" + os.environ.get("POSTPORT")
         headers = {'Content-type': 'application/json'}
@@ -231,6 +445,7 @@ def generateTransactions(numTransactions,numCustomers):
         transactionCount+=1
         if transactionCount==numTransactions:
             complete=True
+
 
 # CREATE TABLE AND WRITE THE CUSTOMERS TO THAT TABLE
 # GENERATE TRANSACTION WILL THEN USE THAT AS BASE AND SHOW TRANSACTIONS FOR CUSTOMERS
@@ -278,25 +493,24 @@ if __name__ == '__main__':
     addAddressesRedis()
     r = redis.Redis(host=os.environ.get("GENHOST"), port=6379, db=0)
     r.flushdb()
-
-    for x in range(1,numCustomers+1):
+    customerAges = ageDistribution(numCustomers)
+    loadBankingData()
+    for x in range(0,numCustomers):
         customer = []
-        sex="f"
-        if x % 2 == 0:
-           sex="m"
-        customer = buildCustomer(sex,x)
+        customer = buildCustomer(x,customerAges[x])
         addCustomerRedis(r,customer[0],customer)
         customers.append(customer)
+
     outputCustomers(customers)
 
 
 
-    #loadCustomerTable()
+    loadCustomerTable()
     generateTransactions(numTransactions, numCustomers)
-    #buildTransactionTables()
+    buildTransactionTables()
 
 
-    outputCustomers(customers)
+    #outputCustomers(customers)
     #getCustomer()
 
 
