@@ -96,7 +96,7 @@ def buildTransactionTables():
         result = session.query("drop view if exists suspect CASCADE ;")
 
         result = session.query("create table transactions(customernum integer,city text,state char(2),zip integer,latitude float,longitude float,time timestamp,amount float) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
-        result = session.query("create table transactions_pxf(customernum integer,city text,state char(2),zip integer,latitude float,longitude float,time timestamp,amount float) LOCATION ('pxf://"+os.environ.get("DBHOST")+":51200/scdf/*.txt?PROFILE=HDFSTextSimple');")
+        result = session.query("create external table transactions_pxf(like transactions) LOCATION('pxf://"+os.environ.get("DBHOST")+":51200/scdf/*.txt?PROFILE=HDFSTextSimple') FORMAT 'CSV'  LOG ERRORS INTO err_transactions SEGMENT REJECT LIMIT 5;")
         result = session.query("SELECT c.latitude AS clat, c.longitude AS clong, t.latitude AS tlat, t.longitude AS tlong, c.balance, t.amount FROM transactions t, customers c WHERE c.customernum = t.customernum AND c.latitude <> t.latitude AND c.longitude <> t.longitude;")
 
 def loadBankingData():
@@ -441,7 +441,7 @@ def generateTransactions(numTransactions,numCustomers):
         #logging.info(transaction)
         postURL = "http://" + os.environ.get("POSTSERVER") + ":" + os.environ.get("POSTPORT")
         headers = {'Content-type': 'application/json'}
-        #r = requests.post(postURL, data=json.dumps({"CCTRANS": transaction}), headers=headers)
+        r = requests.post(postURL, data=json.dumps({"CCTRANS": transaction}), headers=headers)
         transactionCount+=1
         if transactionCount==numTransactions:
             complete=True
