@@ -78,7 +78,10 @@ def loadCustomerTable():
         result = session.query("drop table if exists customers CASCADE ;")
         #result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),age int,email text,sex char,job text,married smallint,balance float) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
         #result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),age int,email text,sex char,job text,married smallint,balance float,accountStatus text,accountDuration int,creditHistory text,purpose text,savingsBalance float,employmentStatus text,creditPercentage int,otherDebtors text,presentResidenceSince int, property text,otherInstallmentCedit text,otherCredit int,employmentType text,dependents int, telephoneAvail int,foreignWorker int) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
-        result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),age int,email text,sex char,job text,married smallint,balance float,accountStatus text,accountDuration int,creditHistory text,purpose text,savingsBalance float,employmentStatus text,creditPercentage int,otherDebtors text,presentResidenceSince int, property text,otherInstallmentCedit text,housingStatus text,otherCredit int,employmentType text,dependents int,telephoneAvail int,foreignWorker int) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
+        result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),age int,email text,sex char,job text,"
+                               "creditability int,accountBalance int,creditDuration int,paymentStatusPrevCredit int,purpose int,purpose int,creditAmount float,"
+                               "savingsValue int,employmentLength int,creditPercent int,sexMaritalStatus int, guarantors int,durationAddess int,"
+                               "mostValAsset int,existingLines int,typeResidence int,dependents int,telephoneAvail int,foreignWorker int) with (appendonly=true) DISTRIBUTED RANDOMLY;")
 
         with open('./data/customers.csv') as csvfile:
             reader = csv.reader(csvfile)
@@ -95,118 +98,194 @@ def buildTransactionTables():
         result = session.query("drop external table if exists transactions_pxf CASCADE ;")
         result = session.query("drop view if exists suspect CASCADE ;")
 
-        result = session.query("create table transactions(customernum integer,city text,state char(2),zip integer,latitude float,longitude float,time timestamp,amount float) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
+        result = session.query("create table transactions(customernum integer,city text,state char(2),zip integer,latitude float,longitude float,time timestamp,amount float) with (appendonly=true) DISTRIBUTED RANDOMLY;")
         result = session.query("create external table transactions_pxf(like transactions) LOCATION('pxf://"+os.environ.get("DBHOST")+":51200/scdf/*.txt?PROFILE=HDFSTextSimple') FORMAT 'CSV'  LOG ERRORS INTO err_transactions SEGMENT REJECT LIMIT 5;")
-        result = session.query("SELECT c.latitude AS clat, c.longitude AS clong, t.latitude AS tlat, t.longitude AS tlong, c.balance, t.amount FROM transactions t, customers c WHERE c.customernum = t.customernum AND c.latitude <> t.latitude AND c.longitude <> t.longitude;")
+        result = session.query("insert into transactions (select * from transactions_pxf;")
+        result = session.query("create view suspect_view as (SELECT c.latitude AS clat, c.longitude AS clong, t.latitude AS tlat, t.longitude AS tlong, c.balance, t.amount FROM transactions t, customers c WHERE c.customernum = t.customernum AND c.latitude <> t.latitude AND c.longitude <> t.longitude);")
 
 def loadBankingData():
     r = redis.Redis(host=os.environ.get("GENHOST"), port=6379, db=3)
-    with open('./data/german.data') as csvfile:
+    with open('./data/germancredit.csv') as csvfile:
         reader = csv.reader(csvfile)
         rowNumber = 0
         for parsedRow in reader:
-            r.hset(rowNumber, "accountStatus", parsedRow[0].strip())
-            r.hset(rowNumber, "accountDuration", parsedRow[1].strip())
-            r.hset(rowNumber, "creditHistory", parsedRow[2].strip())
-            r.hset(rowNumber, "purpose", parsedRow[3].strip())
-            r.hset(rowNumber, "creditBalance", int(parsedRow[4].strip())+np.round(np.random.randint(1,99)/100.00,2))
-            #r.hset(rowNumber, "savingsBalance", parsedRow[5].strip())
-            change = np.round(np.random.randint(1,99)/100.00,2)
+
+            r.hset(rowNumber, "creditability", parsedRow[0])
+            r.hset(rowNumber, "accountBalance", parsedRow[1])
+            r.hset(rowNumber, "creditDuration", parsedRow[2])
+            r.hset(rowNumber, "paymentStatusPrevCredit", parsedRow[3])
+            r.hset(rowNumber, "purpose", parsedRow[4])
+            r.hset(rowNumber, "creditAmount", parsedRow[5])
+            r.hset(rowNumber, "savingsValue", parsedRow[6])
+            r.hset(rowNumber, "employmentLength", parsedRow[7])
+            r.hset(rowNumber, "creditPercent", parsedRow[8])
+            r.hset(rowNumber, "sexMaritalStatus", parsedRow[9])
+            r.hset(rowNumber, "guarantors", parsedRow[10])
+            r.hset(rowNumber, "durationAddess", parsedRow[11])
+            r.hset(rowNumber, "mostValAsset", parsedRow[12])
+            r.hset(rowNumber, "age", parsedRow[13])
+            r.hset(rowNumber, "existingLines", parsedRow[14])
+            r.hset(rowNumber, "typeResidence", parsedRow[15])
+            r.hset(rowNumber, "existingLinesBank", parsedRow[16])
+            r.hset(rowNumber, "employmentType", parsedRow[17])
+            r.hset(rowNumber, "dependendents", parsedRow[18])
+            r.hset(rowNumber, "telephoneAvail", parsedRow[19])
+            r.hset(rowNumber, "foreignWorker", parsedRow[10])
 
 
-            if parsedRow[5].strip()=="A61":
-                r.hset(rowNumber,"savingsBalance",np.random.randint(1,100)+change)
-            elif parsedRow[5].strip()=="A62":
-                r.hset(rowNumber,"savingsBalance",np.random.randint(100,500)+change)
-            elif parsedRow[5].strip()=="A63":
-                r.hset(rowNumber,"savingsBalance",np.random.randint(500,1000)+change)
-            elif parsedRow[5].strip()=="A64":
-                r.hset(rowNumber,"savingsBalance",np.random.randint(1000,10000)+change)
-            elif parsedRow[5].strip() == "A65":
-                r.hset(rowNumber, "savingsBalance", 0.00)
 
-
-
-
-            if parsedRow[6].strip()=="A71":
-                r.hset(rowNumber, "employmentStatus", "0")
-            elif parsedRow[6].strip()=="A72":
-                r.hset(rowNumber, "employmentStatus", "1")
-            elif parsedRow[6].strip() == "A73":
-                r.hset(rowNumber, "employmentStatus", np.random.randint(1,4))
-            elif parsedRow[6].strip() == "A74":
-                r.hset(rowNumber, "employmentStatus", np.random.randint(4,7))
-            elif parsedRow[6].strip() == "A75":
-                r.hset(rowNumber, "employmentStatus", np.random.randint(7,30))
-
-
-            r.hset(rowNumber, "creditPercentage", parsedRow[7].strip())
-            # Parse this into 2
-
-            if parsedRow[8].strip()=="A91":
-                r.hset(rowNumber, "sex", "0")
-                r.hset(rowNumber, "maritalStatus", "2")
-            elif parsedRow[8].strip()=="A92":
-                r.hset(rowNumber, "sex", "1")
-                r.hset(rowNumber, "maritalStatus", "1")
-            elif parsedRow[8].strip()=="A93":
-                r.hset(rowNumber, "sex", "0")
-                r.hset(rowNumber, "maritalStatus", "0")
-            elif parsedRow[8].strip()=="A94":
-                r.hset(rowNumber, "sex", "0")
-                r.hset(rowNumber, "maritalStatus", "1")
-            elif parsedRow[8].strip()=="A95":
-                r.hset(rowNumber, "sex", "1")
-                r.hset(rowNumber, "maritalStatus", "0")
-
-            if parsedRow[9].strip()=="A101":
-                r.hset(rowNumber, "otherDebtors", "0")
-            elif parsedRow[9].strip()=="A102":
-                r.hset(rowNumber, "otherDebtors", "1")
-            else:
-                r.hset(rowNumber, "otherDebtors", "2")
-
-
-            r.hset(rowNumber, "presentResidenceSince", parsedRow[10].strip())
-            r.hset(rowNumber, "property", parsedRow[11].strip())
-            r.hset(rowNumber, "age", parsedRow[12].strip())
-            r.hset(rowNumber, "otherinstallmentCredit", parsedRow[13].strip())
-            r.hset(rowNumber, "housingStatus", parsedRow[14].strip())
-            r.hset(rowNumber, "otherCredit", parsedRow[15].strip())
-            r.hset(rowNumber, "employmentType", parsedRow[16].strip())
-            r.hset(rowNumber, "dependents", parsedRow[17].strip())
-            #r.hset(rowNumber, "telephoneAvail", parsedRow[18].strip())
-            if parsedRow[18].strip()=="A191":
-                r.hset(rowNumber, "telephoneAvail", "0")
-            elif parsedRow[18].strip()=="A192":
-                r.hset(rowNumber, "telephoneAvail", "1")
-            #r.hset(rowNumber, "foreignWorker", parsedRow[19].strip())
-            if parsedRow[19].strip()=="A201":
-                r.hset(rowNumber, "foreignWorker", "0")
-            elif parsedRow[19].strip()=="A202":
-                r.hset(rowNumber, "foreignWorker", "1")
+            # if parsedRow[0].strip()=="A11":
+            #     r.hset(rowNumber,"accountStatus",1)
+            # elif parsedRow[0].strip()=="A12":
+            #     r.hset(rowNumber,"accountStatus",2)
+            # elif parsedRow[0].strip()=="A13":
+            #     r.hset(rowNumber,"accountStatus",3)
+            # elif parsedRow[0].strip()=="A14":
+            #     r.hset(rowNumber,"accountStatus",4)
+            # r.hset(rowNumber, "accountDuration", parsedRow[1].strip())
+            #
+            # #r.hset(rowNumber, "creditHistory", parsedRow[2].strip())
+            # if parsedRow[2].strip() == "A30":
+            #     r.hset(rowNumber, "creditHistory", 1)
+            # elif parsedRow[2].strip() == "A31":
+            #     r.hset(rowNumber, "creditHistory", 2)
+            # elif parsedRow[2].strip() == "A32":
+            #     r.hset(rowNumber, "creditHistory", 3)
+            # elif parsedRow[2].strip() == "A33":
+            #     r.hset(rowNumber, "creditHistory", 4)
+            # elif parsedRow[2].strip() == "A34":
+            #     r.hset(rowNumber, "creditHistory", 5)
+            #
+            #
+            #
+            #
+            # #r.hset(rowNumber, "purpose", parsedRow[3].strip())
+            # if parsedRow[3].strip() == "A40":
+            #     r.hset(rowNumber, "purpose", 1)
+            # elif parsedRow[3].strip() == "A41":
+            #     r.hset(rowNumber, "purpose", 2)
+            # elif parsedRow[3].strip() == "A42":
+            #     r.hset(rowNumber, "purpose", 3)
+            # elif parsedRow[3].strip() == "A43":
+            #     r.hset(rowNumber, "purpose", 4)
+            # elif parsedRow[3].strip() == "A44":
+            #     r.hset(rowNumber, "purpose", 5)
+            # elif parsedRow[3].strip() == "A45":
+            #     r.hset(rowNumber, "purpose", 6)
+            # elif parsedRow[3].strip() == "A46":
+            #     r.hset(rowNumber, "purpose", 7)
+            # elif parsedRow[3].strip() == "A47":
+            #     r.hset(rowNumber, "purpose", 8)
+            # elif parsedRow[3].strip() == "A48":
+            #     r.hset(rowNumber, "purpose", 9)
+            # elif parsedRow[3].strip() == "A49":
+            #     r.hset(rowNumber, "purpose", 10)
+            # elif parsedRow[3].strip() == "A410":
+            #     r.hset(rowNumber, "purpose", 11)
+            #
+            # r.hset(rowNumber, "creditBalance", int(parsedRow[4].strip())+np.round(np.random.randint(1,99)/100.00,2))
+            #
+            #
+            # #r.hset(rowNumber, "savingsBalance", parsedRow[5].strip())
+            # change = np.round(np.random.randint(1,99)/100.00,2)
+            #
+            #
+            # if parsedRow[5].strip()=="A61":
+            #     r.hset(rowNumber,"savingsBalance",np.random.randint(1,100)+change)
+            # elif parsedRow[5].strip()=="A62":
+            #     r.hset(rowNumber,"savingsBalance",np.random.randint(100,500)+change)
+            # elif parsedRow[5].strip()=="A63":
+            #     r.hset(rowNumber,"savingsBalance",np.random.randint(500,1000)+change)
+            # elif parsedRow[5].strip()=="A64":
+            #     r.hset(rowNumber,"savingsBalance",np.random.randint(1000,10000)+change)
+            # elif parsedRow[5].strip() == "A65":
+            #     r.hset(rowNumber, "savingsBalance", 0.00)
+            #
+            #
+            #
+            #
+            # if parsedRow[6].strip()=="A71":
+            #     r.hset(rowNumber, "employmentStatus", "0")
+            # elif parsedRow[6].strip()=="A72":
+            #     r.hset(rowNumber, "employmentStatus", "1")
+            # elif parsedRow[6].strip() == "A73":
+            #     r.hset(rowNumber, "employmentStatus", np.random.randint(1,4))
+            # elif parsedRow[6].strip() == "A74":
+            #     r.hset(rowNumber, "employmentStatus", np.random.randint(4,7))
+            # elif parsedRow[6].strip() == "A75":
+            #     r.hset(rowNumber, "employmentStatus", np.random.randint(7,30))
+            #
+            #
+            # r.hset(rowNumber, "creditPercentage", parsedRow[7].strip())
+            # # Parse this into 2
+            #
+            # if parsedRow[8].strip()=="A91":
+            #     r.hset(rowNumber, "sex", "0")
+            #     r.hset(rowNumber, "maritalStatus", "2")
+            # elif parsedRow[8].strip()=="A92":
+            #     r.hset(rowNumber, "sex", "1")
+            #     r.hset(rowNumber, "maritalStatus", "1")
+            # elif parsedRow[8].strip()=="A93":
+            #     r.hset(rowNumber, "sex", "0")
+            #     r.hset(rowNumber, "maritalStatus", "0")
+            # elif parsedRow[8].strip()=="A94":
+            #     r.hset(rowNumber, "sex", "0")
+            #     r.hset(rowNumber, "maritalStatus", "1")
+            # elif parsedRow[8].strip()=="A95":
+            #     r.hset(rowNumber, "sex", "1")
+            #     r.hset(rowNumber, "maritalStatus", "0")
+            #
+            # if parsedRow[9].strip()=="A101":
+            #     r.hset(rowNumber, "otherDebtors", "0")
+            # elif parsedRow[9].strip()=="A102":
+            #     r.hset(rowNumber, "otherDebtors", "1")
+            # else:
+            #     r.hset(rowNumber, "otherDebtors", "2")
+            #
+            #
+            # r.hset(rowNumber, "presentResidenceSince", parsedRow[10].strip())
+            # r.hset(rowNumber, "property", parsedRow[11].strip())
+            # r.hset(rowNumber, "age", parsedRow[12].strip())
+            # r.hset(rowNumber, "otherinstallmentCredit", parsedRow[13].strip())
+            # r.hset(rowNumber, "housingStatus", parsedRow[14].strip())
+            # r.hset(rowNumber, "otherCredit", parsedRow[15].strip())
+            # r.hset(rowNumber, "employmentType", parsedRow[16].strip())
+            # r.hset(rowNumber, "dependents", parsedRow[17].strip())
+            # #r.hset(rowNumber, "telephoneAvail", parsedRow[18].strip())
+            # if parsedRow[18].strip()=="A191":
+            #     r.hset(rowNumber, "telephoneAvail", "0")
+            # elif parsedRow[18].strip()=="A192":
+            #     r.hset(rowNumber, "telephoneAvail", "1")
+            # #r.hset(rowNumber, "foreignWorker", parsedRow[19].strip())
+            # if parsedRow[19].strip()=="A201":
+            #     r.hset(rowNumber, "foreignWorker", "0")
+            # elif parsedRow[19].strip()=="A202":
+            #     r.hset(rowNumber, "foreignWorker", "1")
             rowNumber+=1
 
 def getBankingData(customerNumber):
     r = redis.Redis(host=os.environ.get("GENHOST"), port=6379, db=3)
     banking= {}
-    banking["accountStatus"] = r.hget(customerNumber,"accountStatus")
-    banking["accountDuration"] = r.hget(customerNumber,"accountDuration")
-    banking["creditHistory"] = r.hget(customerNumber,"creditHistory")
+
+
+
+    banking["creditability"] = r.hget(customerNumber,"creditability")
+    banking["accountBalance"] = r.hget(customerNumber,"accountBalance")
+    banking["creditDuration"] = r.hget(customerNumber,"creditDuration")
+    banking["paymentStatusPrevCredit"] = r.hget(customerNumber,"paymentStatusPrevCredit")
     banking["purpose"] = r.hget(customerNumber,"purpose")
-    banking["creditBalance"] = r.hget(customerNumber,"creditBalance")
-    banking["savingsBalance"] = r.hget(customerNumber,"savingsBalance")
-    banking["employmentStatus"] = r.hget(customerNumber,"employmentStatus")
-    banking["creditPercentage"] = r.hget(customerNumber,"creditPercentage")
-    banking["sex"] = r.hget(customerNumber,"sex")
-    banking["maritalStatus"] = r.hget(customerNumber,"maritalStatus")
-    banking["otherDebtors"] = r.hget(customerNumber,"otherDebtors")
-    banking["presentResidenceSince"] = r.hget(customerNumber,"presentResidenceSince")
-    banking["property"] = r.hget(customerNumber,"property")
+    banking["creditAmount"] = r.hget(customerNumber,"creditAmount")
+    banking["savingsValue"] = r.hget(customerNumber,"savingsValue")
+    banking["employmentLength"] = r.hget(customerNumber,"employmentLength")
+    banking["creditPercent"] = r.hget(customerNumber,"creditPercent")
+    banking["sexMaritalStatus"] = r.hget(customerNumber,"sexMaritalStatus")
+    banking["guarantors"] = r.hget(customerNumber,"guarantors")
+    banking["durationAddess"] = r.hget(customerNumber,"durationAddess")
+    banking["mostValAsset"] = r.hget(customerNumber,"mostValAsset")
     banking["age"] = r.hget(customerNumber,"age")
-    banking["otherinstallmentCredit"] = r.hget(customerNumber,"otherinstallmentCredit")
-    banking["housingStatus"] = r.hget(customerNumber,"housingStatus")
-    banking["otherCredit"] = r.hget(customerNumber,"otherCredit")
+    banking["existingLines"] = r.hget(customerNumber,"existingLines")
+    banking["typeResidence"] = r.hget(customerNumber,"typeResidence")
+    banking["existingLinesBank"] = r.hget(customerNumber,"existingLinesBank")
     banking["employmentType"] = r.hget(customerNumber,"employmentType")
     banking["dependents"] = r.hget(customerNumber,"dependents")
     banking["telephoneAvail"] = r.hget(customerNumber,"telephoneAvail")
@@ -256,35 +335,27 @@ def buildCustomer(custNumber,age):
     customer.append(firstName[0]+lastName+"@"+fake.free_email_domain())
     customer.append(banking["sex"])
     customer.append((fake.job()).translate(None, "'"))
-    customer.append(banking["maritalStatus"])  # Married
 
-
-    # SHOULD  BELL CURVE THIS
-    #customer.append(float(fake.numerify("####.##") )) # BALANCE
-    customer.append(banking["creditBalance"])
-
-    customer.append(banking["accountStatus"])
-    customer.append(banking["accountDuration"])
-    customer.append(banking["creditHistory"])
+    customer.append(banking["creditability"])
+    customer.append(banking["accountBalance"])
+    customer.append(banking["creditDuration"])
+    customer.append(banking["paymentStatusPrevCredit"])
     customer.append(banking["purpose"])
-    customer.append(banking["savingsBalance"])
-    customer.append(banking["employmentStatus"] )
-    customer.append(banking["creditPercentage"])
-    #banking["sex"] = r.hget(customerNumber, "sex")
-    #banking["maritalStatus"] = r.hget(customerNumber, "maritalStatus")
-    customer.append(banking["otherDebtors"]) #10
-    customer.append(banking["presentResidenceSince"]) #11
-    customer.append(banking["property"]) #12
-    #banking["age"] = r.hget(customerNumber, "age")
-    customer.append(banking["otherinstallmentCredit"]) #14
-    customer.append(banking["housingStatus"]) #15
-    customer.append(banking["otherCredit"]) #16
-    customer.append(banking["employmentType"]) #17
-    customer.append(banking["dependents"] )  #18
-    customer.append(banking["telephoneAvail"]) #19
-    customer.append(banking["foreignWorker"]) #20
-
-
+    customer.append(banking["creditAmount"])
+    customer.append(banking["savingsValue"])
+    customer.append(banking["employmentLength"])
+    customer.append(banking["creditPercent"])
+    customer.append(banking["sexMaritalStatus"])
+    customer.append(banking["guarantors"])
+    customer.append(banking["durationAddess"])
+    customer.append(banking["mostValAsset"])
+    customer.append(banking["existingLines"])
+    customer.append(banking["typeResidence"])
+    customer.append(banking["existingLinesBank"])
+    customer.append(banking["employmentType"])
+    customer.append(banking["dependents"])
+    customer.append(banking["telephoneAvail"])
+    customer.append(banking["foreignWorker"])
 
     return customer
 
