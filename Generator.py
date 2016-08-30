@@ -105,7 +105,7 @@ def buildTransactionTables():
 
 def loadBankingData():
     r = redis.Redis(host=os.environ.get("GENHOST"), port=6379, db=3)
-    with open('./data/germancredit.csv') as csvfile:
+    with open('./data/german_credit.csv') as csvfile:
         reader = csv.reader(csvfile)
         rowNumber = 0
         for parsedRow in reader:
@@ -304,7 +304,7 @@ def buildCustomer(custNumber,age):
     else:
         banking=getBankingData(1000 - custNumber)
 
-    if banking["sex"]=="0":
+    if banking["sex"]==0:
         firstName = fake.first_name_male()
         customer.append(firstName)
 
