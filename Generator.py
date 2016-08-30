@@ -95,7 +95,7 @@ def buildTransactionTables():
 
         result = session.query("create table transactions(customernum integer,city text,state char(2),zip integer,latitude float,longitude float,time timestamp,amount float) with (appendonly=true) DISTRIBUTED RANDOMLY;")
         result = session.query("create external table transactions_pxf(like transactions) LOCATION('pxf://"+os.environ.get("DBHOST")+":51200/scdf/*.txt?PROFILE=HDFSTextSimple') FORMAT 'CSV'  LOG ERRORS INTO err_transactions SEGMENT REJECT LIMIT 5;")
-        result = session.query("insert into transactions (select * from transactions_pxf;")
+        result = session.query("insert into transactions (select * from transactions_pxf);")
         result = session.query("create view suspect_view as (SELECT c.latitude AS clat, c.longitude AS clong, t.latitude AS tlat, t.longitude AS tlong, c.balance, t.amount FROM transactions t, customers c WHERE c.customernum = t.customernum AND c.latitude <> t.latitude AND c.longitude <> t.longitude);")
 
 def loadBankingData():
