@@ -63,7 +63,8 @@ def addCustomerRedis(r,customerNum,customer):
     r.hset(customerNum, "dependendents", customer[32])
     r.hset(customerNum, "telephoneAvail", customer[33])
     r.hset(customerNum, "foreignWorker", customer[34])
-    r.hset(customerNum, "training", np.random.randint(0,1))
+    r.hset(customerNum, "training", customer[35])
+
 
 
 def loadCustomerTable():
@@ -350,6 +351,7 @@ def buildCustomer(custNumber,age):
     customer.append(banking["dependents"])
     customer.append(banking["telephoneAvail"])
     customer.append(banking["foreignWorker"])
+    customer.append(np.random.randint(0,1))
 
     return customer
 
