@@ -63,7 +63,7 @@ def addCustomerRedis(r,customerNum,customer):
     r.hset(customerNum, "dependendents", customer[32])
     r.hset(customerNum, "telephoneAvail", customer[33])
     r.hset(customerNum, "foreignWorker", customer[34])
-
+    r.hset(customerNum, "training", np.random.randint(0,1))
 
 
 def loadCustomerTable():
@@ -76,7 +76,7 @@ def loadCustomerTable():
         result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),age int,email text,job text,"
                                "creditability int,accountBalanceStatus int,creditDuration int,paymentStatusPrevCredit int,purpose int,creditAmount int,"
                                "savingsValue int,employmentLength int,creditPercent int,sexMaritalStatus int, guarantors int,durationAddess int,"
-                               "mostValAsset int,existingLines int,typeResidence int,existingLinesBank int,employmentType int,dependents int,telephoneAvail int,foreignWorker int) with (appendonly=true) DISTRIBUTED RANDOMLY;")
+                               "mostValAsset int,existingLines int,typeResidence int,existingLinesBank int,employmentType int,dependents int,telephoneAvail int,foreignWorker int,training int) with (appendonly=true) DISTRIBUTED RANDOMLY;")
 
         with open('./data/customers.csv') as csvfile:
             reader = csv.reader(csvfile)
