@@ -42,7 +42,7 @@ def addCustomerRedis(r,customerNum,customer):
     #r.hset(customerNum, "birthDate", customer[12])
     r.hset(customerNum, "age", customer[12])
     r.hset(customerNum, "email", customer[13])
-    r.hset(customerNum, "sex", customer[14])
+    #r.hset(customerNum, "sex", customer[14])
     r.hset(customerNum, "job", customer[15])
     r.hset(customerNum, "married", customer[16])
     r.hset(customerNum, "balance", customer[17])
