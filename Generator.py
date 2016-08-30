@@ -86,7 +86,7 @@ def loadCustomerTable():
                 result = session.query("insert into customers VALUES ("+rowString+");")
                 postURL = "http://" + os.environ.get("POSTSERVER") + ":" + str(int(os.environ.get("POSTPORT"))+1)
                 headers = {'Content-type': 'application/json'}
-                rowJSON = '{"customerNum": row[0]},{"accountBalanceStatus":row[16]},{"paymentStatusPrevCredit":row[18]},{"typeResidence":row[29]},{"existingLines":row[28]},{"existingLinesBank":row[30]},{"creditPercent": row[23]},{"creditDuration":row[17]},{"creditAmount":row[20]}'
+                rowJSON = {"customerNum": row[0]},{"accountBalanceStatus":row[16]},{"paymentStatusPrevCredit":row[18]},{"typeResidence":row[29]},{"existingLines":row[28]},{"existingLinesBank":row[30]},{"creditPercent": row[23]},{"creditDuration":row[17]},{"creditAmount":row[20]}
                 r = requests.post(postURL, data=json.dumps(rowJSON), headers=headers)
                 #print r
 
