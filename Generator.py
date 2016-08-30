@@ -331,7 +331,7 @@ def buildCustomer(custNumber,age):
     customer.append((fake.job()).translate(None, "'"))
 
     customer.append(banking["creditability"])
-    customer.append(banking["accountBalance"])
+    customer.append(banking["accountBalanceStatus"])
     customer.append(banking["creditDuration"])
     customer.append(banking["paymentStatusPrevCredit"])
     customer.append(banking["purpose"])
