@@ -44,7 +44,7 @@ def addCustomerRedis(r,customerNum,customer):
     r.hset(customerNum, "email", customer[13])
     r.hset(customerNum, "job", customer[14])
     r.hset(customerNum, "creditability", customer[15])
-    r.hset(customerNum, "accountBalance", customer[16])
+    r.hset(customerNum, "accountBalanceStatus", customer[16])
     r.hset(customerNum, "creditDuration", customer[17])
     r.hset(customerNum, "paymentStatusPrevCredit", customer[18])
     r.hset(customerNum, "purpose", customer[19])
@@ -74,7 +74,7 @@ def loadCustomerTable():
         #result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),age int,email text,sex char,job text,married smallint,balance float) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
         #result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),age int,email text,sex char,job text,married smallint,balance float,accountStatus text,accountDuration int,creditHistory text,purpose text,savingsBalance float,employmentStatus text,creditPercentage int,otherDebtors text,presentResidenceSince int, property text,otherInstallmentCedit text,otherCredit int,employmentType text,dependents int, telephoneAvail int,foreignWorker int) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
         result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),age int,email text,job text,"
-                               "creditability int,accountBalance int,creditDuration int,paymentStatusPrevCredit int,purpose int,creditAmount int,"
+                               "creditability int,accountBalanceStatus int,creditDuration int,paymentStatusPrevCredit int,purpose int,creditAmount int,"
                                "savingsValue int,employmentLength int,creditPercent int,sexMaritalStatus int, guarantors int,durationAddess int,"
                                "mostValAsset int,existingLines int,typeResidence int,existingLinesBank int,employmentType int,dependents int,telephoneAvail int,foreignWorker int) with (appendonly=true) DISTRIBUTED RANDOMLY;")
 
@@ -96,7 +96,7 @@ def buildTransactionTables():
         result = session.query("create table transactions(customernum integer,city text,state char(2),zip integer,latitude float,longitude float,time timestamp,amount float) with (appendonly=true) DISTRIBUTED RANDOMLY;")
         result = session.query("create external table transactions_pxf(like transactions) LOCATION('pxf://"+os.environ.get("DBHOST")+":51200/scdf/*.txt?PROFILE=HDFSTextSimple') FORMAT 'CSV'  LOG ERRORS INTO err_transactions SEGMENT REJECT LIMIT 5;")
         result = session.query("insert into transactions (select * from transactions_pxf);")
-        result = session.query("create view suspect_view as (SELECT c.latitude AS clat, c.longitude AS clong, t.latitude AS tlat, t.longitude AS tlong, c.balance, t.amount FROM transactions t, customers c WHERE c.customernum = t.customernum AND c.latitude <> t.latitude AND c.longitude <> t.longitude);")
+        result = session.query("create view suspect_view as (SELECT c.latitude AS clat, c.longitude AS clong, t.latitude AS tlat, t.longitude AS tlong, t.amount FROM transactions t, customers c WHERE c.customernum = t.customernum AND c.latitude <> t.latitude AND c.longitude <> t.longitude);")
 
 def loadBankingData():
     r = redis.Redis(host=os.environ.get("GENHOST"), port=6379, db=3)
@@ -106,7 +106,7 @@ def loadBankingData():
         for parsedRow in reader:
             # 21 Attributes
             r.hset(rowNumber, "creditability", parsedRow[0])
-            r.hset(rowNumber, "accountBalance", parsedRow[1])
+            r.hset(rowNumber, "accountBalanceStatus", parsedRow[1])
             r.hset(rowNumber, "creditDuration", parsedRow[2])
             r.hset(rowNumber, "paymentStatusPrevCredit", parsedRow[3])
             r.hset(rowNumber, "purpose", parsedRow[4])
@@ -265,7 +265,7 @@ def getBankingData(customerNumber):
 
     # 21 Attributes
     banking["creditability"] = r.hget(customerNumber,"creditability")
-    banking["accountBalance"] = r.hget(customerNumber,"accountBalance")
+    banking["accountBalanceStatus"] = r.hget(customerNumber,"accountBalanceStatus")
     banking["creditDuration"] = r.hget(customerNumber,"creditDuration")
     banking["paymentStatusPrevCredit"] = r.hget(customerNumber,"paymentStatusPrevCredit")
     banking["purpose"] = r.hget(customerNumber,"purpose")
