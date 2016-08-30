@@ -568,7 +568,7 @@ if __name__ == '__main__':
     print "TrainingSetSize",trainingSet
     for x in range(0,numCustomers):
         customer = []
-        if (trainingSet < (x-1)):
+        if ((x+1) < trainingSet):
             customer = buildCustomer(x,customerAges[x],1)
         else:
             customer = buildCustomer(x, customerAges[x], 0)
