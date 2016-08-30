@@ -28,6 +28,7 @@ seedCustomerNumber = 40000
 
 
 def addCustomerRedis(r,customerNum,customer):
+
     r.hset(customerNum,"firstName",customer[1])
     r.hset(customerNum, "lastName", customer[2])
     r.hset(customerNum, "address", customer[3])
@@ -45,26 +46,23 @@ def addCustomerRedis(r,customerNum,customer):
     r.hset(customerNum, "creditability", customer[15])
     r.hset(customerNum, "accountBalance", customer[16])
     r.hset(customerNum, "creditDuration", customer[17])
-    r.hset(customerNum, "accountStatus", customer[16])
-    r.hset(customerNum, "accountDuration", customer[18])
-    r.hset(customerNum, "paymentStatusPrevCredit", customer[19])
-    r.hset(customerNum, "purpose", customer[20])
-    r.hset(customerNum, "creditAmount", customer[21])
-    r.hset(customerNum, "savingsValue", customer[22])
-    r.hset(customerNum, "employmentLength", customer[23])
-    r.hset(customerNum, "creditPercent", customer[24])
-    r.hset(customerNum, "sexMaritalStatus", customer[25])
-    r.hset(customerNum, "guarantors", customer[26])
-    r.hset(customerNum, "durationAddess", customer[27])
-    r.hset(customerNum, "mostValAsset", customer[28])
-    r.hset(customerNum, "existingLines", customer[29])
-    r.hset(customerNum, "typeResidence", customer[30])
-    r.hset(customerNum, "existingLinesBank", customer[31])
-    r.hset(customerNum, "employmentType", customer[32])
-    r.hset(customerNum, "dependendents", customer[33])
-    r.hset(customerNum, "telephoneAvail", customer[34])
-    r.hset(customerNum, "foreignWorker", customer[35])
-
+    r.hset(customerNum, "paymentStatusPrevCredit", customer[18])
+    r.hset(customerNum, "purpose", customer[19])
+    r.hset(customerNum, "creditAmount", customer[20])
+    r.hset(customerNum, "savingsValue", customer[21])
+    r.hset(customerNum, "employmentLength", customer[22])
+    r.hset(customerNum, "creditPercent", customer[23])
+    r.hset(customerNum, "sexMaritalStatus", customer[24])
+    r.hset(customerNum, "guarantors", customer[25])
+    r.hset(customerNum, "durationAddess", customer[26])
+    r.hset(customerNum, "mostValAsset", customer[27])
+    r.hset(customerNum, "existingLines", customer[28])
+    r.hset(customerNum, "typeResidence", customer[29])
+    r.hset(customerNum, "existingLinesBank", customer[30])
+    r.hset(customerNum, "employmentType", customer[31])
+    r.hset(customerNum, "dependendents", customer[32])
+    r.hset(customerNum, "telephoneAvail", customer[33])
+    r.hset(customerNum, "foreignWorker", customer[34])
 
 
 
