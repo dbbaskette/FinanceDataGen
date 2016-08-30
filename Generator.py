@@ -291,7 +291,7 @@ def getBankingData(customerNumber):
     return banking
 
 
-def buildCustomer(custNumber,age):
+def buildCustomer(custNumber,age,train):
     fake = Faker()
     customer=[]
     customer.append(seedCustomerNumber+custNumber)
@@ -351,7 +351,9 @@ def buildCustomer(custNumber,age):
     customer.append(banking["dependents"])
     customer.append(banking["telephoneAvail"])
     customer.append(banking["foreignWorker"])
-    customer.append(np.random.random_integers(0,1))
+
+
+    customer.append(train)
 
     return customer
 
@@ -562,9 +564,13 @@ if __name__ == '__main__':
     r.flushdb()
     customerAges = ageDistribution(numCustomers)
     loadBankingData()
+    trainingSet= np.round(numCustomers*.1,0)
     for x in range(0,numCustomers):
         customer = []
-        customer = buildCustomer(x,customerAges[x])
+        if trainingSet < x:
+            customer = buildCustomer(x,customerAges[x],1)
+        else:
+            customer = buildCustomer(x, customerAges[x], 0)
         addCustomerRedis(r,customer[0],customer)
         customers.append(customer)
 
