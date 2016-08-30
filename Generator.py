@@ -74,9 +74,9 @@ def loadCustomerTable():
         #result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),age int,email text,sex char,job text,married smallint,balance float) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
         #result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),age int,email text,sex char,job text,married smallint,balance float,accountStatus text,accountDuration int,creditHistory text,purpose text,savingsBalance float,employmentStatus text,creditPercentage int,otherDebtors text,presentResidenceSince int, property text,otherInstallmentCedit text,otherCredit int,employmentType text,dependents int, telephoneAvail int,foreignWorker int) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
         result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),age int,email text,job text,"
-                               "creditability int,accountBalance int,creditDuration int,paymentStatusPrevCredit int,purpose int,creditAmount float,"
+                               "creditability int,accountBalance int,creditDuration int,paymentStatusPrevCredit int,purpose int,creditAmount int,"
                                "savingsValue int,employmentLength int,creditPercent int,sexMaritalStatus int, guarantors int,durationAddess int,"
-                               "mostValAsset int,existingLines int,typeResidence int,dependents int,telephoneAvail int,foreignWorker int) with (appendonly=true) DISTRIBUTED RANDOMLY;")
+                               "mostValAsset int,existingLines int,typeResidence int,existingLinesBank int,employmentType int,dependents int,telephoneAvail int,foreignWorker int) with (appendonly=true) DISTRIBUTED RANDOMLY;")
 
         with open('./data/customers.csv') as csvfile:
             reader = csv.reader(csvfile)
