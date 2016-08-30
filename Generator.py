@@ -66,7 +66,7 @@ def addCustomerRedis(r,customerNum,customer):
     r.hset(customerNum, "training", customer[35])
 
 
-
+#accountBalanceStatus, paymentStatusPrevCredit,purpose,savingsValue,employmentLength,sexMaritalStatus,mostValAsset,typeResidence,existingLines,existingLinesBank,creditPercent,creditDuration,creditAmoun
 def loadCustomerTable():
     print "Loading Customer Table in Database"
     dbURI = queries.uri(os.environ.get("DBHOST"), port=os.environ.get("DBPORT"), dbname="gpadmin", user="gpadmin", password="gpadmin")
@@ -86,8 +86,11 @@ def loadCustomerTable():
                 result = session.query("insert into customers VALUES ("+rowString+");")
                 postURL = "http://" + os.environ.get("POSTSERVER") + ":" + str(int(os.environ.get("POSTPORT"))+1)
                 headers = {'Content-type': 'application/json'}
-                r = requests.post(postURL, data=json.dumps({"customerNum": row[0]}), headers=headers)
-                print r
+                r = requests.post(postURL, data=json.dumps({"customerNum": row[0]},{"accountBalanceStatus":row[16]},{"paymentStatusPrevCredit":row[18]},
+                {"purpose": row[19]},{"savingsValue":row[21]},{"employmentLength":row[22]},{"sexMaritalStatus":row[24]},{"mostValAsset":row[27]},
+                                                           {"typeResidence":row[29]},{"existingLines":row[28]},{"existingLinesBank":row[30]}
+                                                           ,{"creditPercent": row[23]},{"creditDuration":row[17]},{"creditAmount":row[20]}), headers=headers)
+                #print r
 
 def buildTransactionTables():
     print "Adding Tables and Views in Database"
