@@ -78,7 +78,7 @@ def loadCustomerTable():
         result = session.query("drop table if exists customers CASCADE ;")
         #result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),age int,email text,sex char,job text,married smallint,balance float) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
         #result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),age int,email text,sex char,job text,married smallint,balance float,accountStatus text,accountDuration int,creditHistory text,purpose text,savingsBalance float,employmentStatus text,creditPercentage int,otherDebtors text,presentResidenceSince int, property text,otherInstallmentCedit text,otherCredit int,employmentType text,dependents int, telephoneAvail int,foreignWorker int) with (appendonly=true, compresstype=snappy) DISTRIBUTED RANDOMLY;")
-        result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),age int,email text,sex char,job text,"
+        result = session.query("create table customers(customerNum int,firstName text,lastName text,address text,city text,state char(2),zip int,latitude float,longitude float,cardNumber bigint,phone text,ssn varchar(11),age int,email text,job text,"
                                "creditability int,accountBalance int,creditDuration int,paymentStatusPrevCredit int,purpose int,purpose int,creditAmount float,"
                                "savingsValue int,employmentLength int,creditPercent int,sexMaritalStatus int, guarantors int,durationAddess int,"
                                "mostValAsset int,existingLines int,typeResidence int,dependents int,telephoneAvail int,foreignWorker int) with (appendonly=true) DISTRIBUTED RANDOMLY;")
@@ -307,7 +307,6 @@ def buildCustomer(custNumber,age):
     if banking["sexMaritalStatus"]==0:
         firstName = fake.first_name_male()
         customer.append(firstName)
-
     else:
         firstName = fake.first_name_female()
         customer.append(firstName)
@@ -333,7 +332,6 @@ def buildCustomer(custNumber,age):
     customer.append(banking["age"])
     #customer.append(math.trunc((ageTemp.days + ageTemp.seconds / 86400) / 365.2425))
     customer.append(firstName[0]+lastName+"@"+fake.free_email_domain())
-    customer.append(banking["sex"])
     customer.append((fake.job()).translate(None, "'"))
 
     customer.append(banking["creditability"])
