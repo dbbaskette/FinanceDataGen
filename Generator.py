@@ -84,7 +84,7 @@ def loadCustomerTable():
             for row in reader:
                 rowString = "'"+"','".join(row)+"'"
                 result = session.query("insert into customers VALUES ("+rowString+");")
-                postURL = "http://" + os.environ.get("POSTSERVER") + ":" + os.environ.get("POSTPORT+1")
+                postURL = "http://" + os.environ.get("POSTSERVER") + ":" + str(int(os.environ.get("POSTPORT"))+1)
                 headers = {'Content-type': 'application/json'}
                 r = requests.post(postURL, data=json.dumps({"customerNum": row[0]}), headers=headers)
                 print r
