@@ -565,9 +565,10 @@ if __name__ == '__main__':
     customerAges = ageDistribution(numCustomers)
     loadBankingData()
     trainingSet= np.round(numCustomers*.1,0)
+    print "TrainingSetSize",trainingSet
     for x in range(0,numCustomers):
         customer = []
-        if trainingSet < x-1:
+        if (trainingSet < (x-1)):
             customer = buildCustomer(x,customerAges[x],1)
         else:
             customer = buildCustomer(x, customerAges[x], 0)
