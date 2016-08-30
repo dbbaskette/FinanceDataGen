@@ -84,6 +84,10 @@ def loadCustomerTable():
             for row in reader:
                 rowString = "'"+"','".join(row)+"'"
                 result = session.query("insert into customers VALUES ("+rowString+");")
+                postURL = "http://" + os.environ.get("POSTSERVER") + ":" + os.environ.get("POSTPORT+1")
+                headers = {'Content-type': 'application/json'}
+                r = requests.post(postURL, data=json.dumps({"customerNum": row[0]}), headers=headers)
+                print r
 
 def buildTransactionTables():
     print "Adding Tables and Views in Database"
@@ -514,6 +518,8 @@ def generateTransactions(numTransactions,numCustomers):
         transactionCount+=1
         if transactionCount==numTransactions:
             complete=True
+
+
 
 
 # CREATE TABLE AND WRITE THE CUSTOMERS TO THAT TABLE
