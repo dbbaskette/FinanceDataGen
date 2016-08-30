@@ -39,34 +39,31 @@ def addCustomerRedis(r,customerNum,customer):
     r.hset(customerNum, "cardNum", customer[9])
     r.hset(customerNum, "phone", customer[10])
     r.hset(customerNum, "ssn", customer[11])
-    #r.hset(customerNum, "birthDate", customer[12])
     r.hset(customerNum, "age", customer[12])
     r.hset(customerNum, "email", customer[13])
-    #r.hset(customerNum, "sex", customer[14])
-    r.hset(customerNum, "job", customer[15])
-    r.hset(customerNum, "married", customer[16])
-    r.hset(customerNum, "balance", customer[17])
+    r.hset(customerNum, "job", customer[14])
+    r.hset(customerNum, "creditability", customer[15])
+    r.hset(customerNum, "accountBalance", customer[16])
+    r.hset(customerNum, "creditDuration", customer[17])
     r.hset(customerNum, "accountStatus", customer[16])
-    r.hset(customerNum, "accountDuration", customer[17])
-    r.hset(customerNum, "creditHistory", customer[18])
-    r.hset(customerNum, "purpose", customer[19])
-    #r.hset(customerNum, "creditBalance", customer[20])
-    r.hset(customerNum, "savingsBalance", customer[21])
-    r.hset(customerNum, "employmentStatus", customer[22])
-    r.hset(customerNum, "creditPercentage", customer[23])
-    # banking["sex"] = r.hget(customerNumber, "sex")
-    # banking["maritalStatus"] = r.hget(customerNumber, "maritalStatus")
-    r.hset(customerNum, "otherDebtors", customer[25])
-    r.hset(customerNum, "presentResidenceSince", customer[26])
-    r.hset(customerNum, "property", customer[27])
-    # banking["age"] = r.hget(customerNumber, "age")
-    r.hset(customerNum, "otherinstallmentCredit", customer[28])
-    r.hset(customerNum, "housingStatus", customer[29])
-    r.hset(customerNum, "otherCredit", customer[30])
-    r.hset(customerNum, "employmentType", customer[31])
-    r.hset(customerNum, "dependents", customer[32])
-    r.hset(customerNum, "telephoneAvail", customer[33])
-    r.hset(customerNum, "foreignWorker", customer[34])
+    r.hset(customerNum, "accountDuration", customer[18])
+    r.hset(customerNum, "paymentStatusPrevCredit", customer[19])
+    r.hset(customerNum, "purpose", customer[20])
+    r.hset(customerNum, "creditAmount", customer[21])
+    r.hset(customerNum, "savingsValue", customer[22])
+    r.hset(customerNum, "employmentLength", customer[23])
+    r.hset(customerNum, "creditPercent", customer[24])
+    r.hset(customerNum, "sexMaritalStatus", customer[25])
+    r.hset(customerNum, "guarantors", customer[26])
+    r.hset(customerNum, "durationAddess", customer[27])
+    r.hset(customerNum, "mostValAsset", customer[28])
+    r.hset(customerNum, "existingLines", customer[29])
+    r.hset(customerNum, "typeResidence", customer[30])
+    r.hset(customerNum, "existingLinesBank", customer[31])
+    r.hset(customerNum, "employmentType", customer[32])
+    r.hset(customerNum, "dependendents", customer[33])
+    r.hset(customerNum, "telephoneAvail", customer[34])
+    r.hset(customerNum, "foreignWorker", customer[35])
 
 
 
@@ -109,7 +106,7 @@ def loadBankingData():
         reader = csv.reader(csvfile)
         rowNumber = 0
         for parsedRow in reader:
-
+            # 21 Attributes
             r.hset(rowNumber, "creditability", parsedRow[0])
             r.hset(rowNumber, "accountBalance", parsedRow[1])
             r.hset(rowNumber, "creditDuration", parsedRow[2])
@@ -130,7 +127,7 @@ def loadBankingData():
             r.hset(rowNumber, "employmentType", parsedRow[17])
             r.hset(rowNumber, "dependendents", parsedRow[18])
             r.hset(rowNumber, "telephoneAvail", parsedRow[19])
-            r.hset(rowNumber, "foreignWorker", parsedRow[10])
+            r.hset(rowNumber, "foreignWorker", parsedRow[20])
 
 
 
@@ -268,7 +265,7 @@ def getBankingData(customerNumber):
     banking= {}
 
 
-
+    # 21 Attributes
     banking["creditability"] = r.hget(customerNumber,"creditability")
     banking["accountBalance"] = r.hget(customerNumber,"accountBalance")
     banking["creditDuration"] = r.hget(customerNumber,"creditDuration")
@@ -328,7 +325,8 @@ def buildCustomer(custNumber,age):
     #ageTemp = datetime.datetime.now() - birthDate
     #customer.append(datetime.datetime.date(birthDate))
 
-
+    # 14 Customer Attributes
+    # 21 Banking Attributes
     customer.append(banking["age"])
     #customer.append(math.trunc((ageTemp.days + ageTemp.seconds / 86400) / 365.2425))
     customer.append(firstName[0]+lastName+"@"+fake.free_email_domain())
