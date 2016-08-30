@@ -567,7 +567,7 @@ if __name__ == '__main__':
     trainingSet= np.round(numCustomers*.1,0)
     for x in range(0,numCustomers):
         customer = []
-        if trainingSet < x:
+        if trainingSet < x-1:
             customer = buildCustomer(x,customerAges[x],1)
         else:
             customer = buildCustomer(x, customerAges[x], 0)
