@@ -304,7 +304,7 @@ def buildCustomer(custNumber,age):
     else:
         banking=getBankingData(1000 - custNumber)
 
-    if banking["sex"]==0:
+    if banking["sexMaritalStatus"]==0:
         firstName = fake.first_name_male()
         customer.append(firstName)
 
