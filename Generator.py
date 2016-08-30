@@ -351,7 +351,7 @@ def buildCustomer(custNumber,age):
     customer.append(banking["dependents"])
     customer.append(banking["telephoneAvail"])
     customer.append(banking["foreignWorker"])
-    customer.append(np.random.randint(0,1))
+    customer.append(np.random.random_integers(0,1))
 
     return customer
 
