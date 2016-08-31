@@ -337,7 +337,6 @@ def buildCustomer(custNumber,age,train):
     #customer.append(math.trunc((ageTemp.days + ageTemp.seconds / 86400) / 365.2425))
     customer.append(firstName[0]+lastName+"@"+fake.free_email_domain())
     customer.append((fake.job()).translate(None, "'"))
-
     customer.append(banking["creditability"])
     customer.append(banking["accountBalanceStatus"])
     customer.append(banking["creditDuration"])
@@ -358,8 +357,6 @@ def buildCustomer(custNumber,age,train):
     customer.append(banking["dependents"])
     customer.append(banking["telephoneAvail"])
     customer.append(banking["foreignWorker"])
-
-
     customer.append(train)
 
     return customer
@@ -595,6 +592,13 @@ if __name__ == '__main__':
 
     #outputCustomers(customers)
     #getCustomer()
+
+
+#   * need ability to run transactions with existing customer database.
+#   * clean up flow for customer generation
+#   * make training set for customers an option.   Don't pull out of # customers
+#     n + m customers
+
 
 
 
