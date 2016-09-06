@@ -156,7 +156,6 @@ def readCustomerCreditDataset():
     return customerCreditDataset
 
 def readZipCodeDataset():
-    print "Reading ZipCode Data"
     zipCodeDataset = []
     with open('./data/zipcodes.csv') as csvfile:
         reader = csv.reader(csvfile)
@@ -168,6 +167,7 @@ def readZipCodeDataset():
             zipCodeData["latitude"] = row[5]
             zipCodeData["longitude"] = row[6]
             zipCodeDataset.append(zipCodeData)
+    print "ZipCodes Returned"
     return zipCodeDataset
 
 
