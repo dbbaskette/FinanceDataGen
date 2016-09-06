@@ -225,7 +225,6 @@ def buildCustomerDB(numCustomers):
     customers = []
 
     for i in range(0,numCustomers):
-        print i
         customerData=Customer()
 
         # Cycle Back through Data and just repeat if more than 1000 rows are needed.
@@ -298,7 +297,6 @@ def buildCustomerDB(numCustomers):
 
 
 def postTransaction(transaction):
-    print "POST TRANSACTION"
 
     #jsonTransaction = json.dumps({"CCTRANS" :vars(transaction)})
     jsonTransaction = json.dumps(vars(transaction))
@@ -311,7 +309,6 @@ def postTransaction(transaction):
 
 
 def loadDatabase():
-    print "Loading Customer Table in Database"
     dbURI = queries.uri(os.environ.get("DBHOST"), port=os.environ.get("DBPORT"), dbname="gpadmin", user="gpadmin",
                         password="gpadmin")
     with queries.Session(dbURI) as session:
@@ -326,6 +323,8 @@ def loadDatabase():
                 result = session.query("insert into customers VALUES (" + rowString + ");")
 
                 # This is to post new customers.   Not implementing yet.
+        result = session.query("drop table if exists transactions CASCADE ;create table transactions(city text,zip integer,amount float,state text,longitude float,streetaddress text,latitude float,transactiontimestamp timestamp,customerNumber bigint) with (appendonly=true) DISTRIBUTED RANDOMLY;")
+        result = session.query("drop table if exists transactions_pxf CASCADE ;create external table transactions_pxf(like transactions) LOCATION('pxf://" + os.environ.get("DBHOST") + ":51200/scdf/*.txt?PROFILE=HDFSTextSimple') FORMAT 'CSV' (QUOTE '''')  LOG ERRORS INTO err_transactions SEGMENT REJECT LIMIT 5;")
 
                 #postURL = "http://" + os.environ.get("POSTSERVER") + ":" + str(int(os.environ.get("POSTPORT")) + 1)
                 #headers = {'Content-type': 'application/json'}
