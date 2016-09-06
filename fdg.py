@@ -302,12 +302,9 @@ def postTransaction(transaction):
 
     jsonTransaction = json.dumps({"CCTRANS" :vars(transaction)})
 
-    pprint.pprint(jsonTransaction)
-    print "http://" + os.environ.get("POSTSERVER") + ":" + os.environ.get("POSTPORT")
     postURL = "http://" + os.environ.get("POSTSERVER") + ":" + os.environ.get("POSTPORT")
     headers = {'Content-type': 'application/json'}
-    #r = requests.post(postURL, data=jsonTransaction, headers=headers)
-    #print r
+    r = requests.post(postURL, data=jsonTransaction, headers=headers)
 
 
 
