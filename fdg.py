@@ -185,7 +185,7 @@ def getAddressData(zipCodeDataSet,zipCode=""):
     state = zipCodeDataSet[zipCodeIndex]["state"]
     latitude = zipCodeDataSet[zipCodeIndex]["latitude"]
     longitude = zipCodeDataSet[zipCodeIndex]["longitude"]
-    #print "WATCH FOR ERROR:",latitude,longitude
+    print "WATCH FOR ERROR:",latitude,longitude
     return city, state, zipCode, float(latitude), float(longitude)
 
 def getBirthDate(age):
