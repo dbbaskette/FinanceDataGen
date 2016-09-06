@@ -300,7 +300,9 @@ def buildCustomerDB(numCustomers):
 def postTransaction(transaction):
     print "POST TRANSACTION"
 
-    jsonTransaction = json.dumps({"CCTRANS" :vars(transaction)})
+    #jsonTransaction = json.dumps({"CCTRANS" :vars(transaction)})
+    jsonTransaction = json.dumps(vars(transaction))
+
 
     postURL = "http://" + os.environ.get("POSTSERVER") + ":" + os.environ.get("POSTPORT")
     headers = {'Content-type': 'application/json'}
