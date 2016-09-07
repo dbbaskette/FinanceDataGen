@@ -22,5 +22,6 @@ class Transaction(object):
         self.longitude = 0
         self.transactionTimestamp =  0
         self.amount = 0
+        self.id= 0
 
 

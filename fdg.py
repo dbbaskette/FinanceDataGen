@@ -13,6 +13,7 @@ import pickle
 import pprint,json
 import queries
 import requests
+import time
 
 dotenv_path = "./config/config.env"
 seedCustomerNumber = 40000
@@ -99,6 +100,7 @@ def generateTransactions(numTransactions,newCustomers,customers):
         transaction.streetAddress = str(fake.street_address())
         transaction.transactionTimestamp = (str(datetime.now()))
         transaction.amount = (float(transactionDistribution()))
+        transaction.id = time.strftime("%y%m%d%H%m%s")+str(x)
         postTransaction(transaction)
         transactions.append(transaction)
     return transactions
@@ -301,7 +303,6 @@ def postTransaction(transaction):
     #jsonTransaction = json.dumps({"CCTRANS" :vars(transaction)})
     jsonTransaction = json.dumps(vars(transaction))
 
-
     postURL = "http://" + os.environ.get("POSTSERVER") + ":" + os.environ.get("POSTPORT")
     headers = {'Content-type': 'application/json'}
     r = requests.post(postURL, data=jsonTransaction, headers=headers)
@@ -324,7 +325,11 @@ def loadDatabase():
 
                 # This is to post new customers.   Not implementing yet.
         result = session.query("drop table if exists transactions CASCADE ;")
-        result = session.query("create table transactions(city text,zip integer,amount float,state text,longitude float,streetaddress text,latitude float,transactiontimestamp timestamp,customerNumber bigint) with (appendonly=true) DISTRIBUTED RANDOMLY;")
+        result = session.query("drop table if exists transactions_hive CASCADE ;")
+
+        result = session.query("create table transactions(city text,zip integer,amount float,state text,longitude float,id text,streetaddress text,latitude float,transactiontimestamp timestamp,customerNumber bigint) with (appendonly=true) DISTRIBUTED RANDOMLY;")
+        result = session.query("create table transactions_hive(like transactions);")
+
         result = session.query("drop external table if exists transactions_pxf CASCADE ;")
         result = session.query("create external table transactions_pxf(like transactions) LOCATION('pxf://" + os.environ.get("DBHOST") + ":51200/scdf/*.txt?PROFILE=HDFSTextSimple') FORMAT 'CSV' (QUOTE '''')  LOG ERRORS INTO err_transactions SEGMENT REJECT LIMIT 500;")
 
