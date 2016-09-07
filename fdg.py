@@ -188,7 +188,7 @@ def getAddressData(zipCodeDataSet,zipCode=""):
     state = zipCodeDataSet[zipCodeIndex]["state"]
     latitude = zipCodeDataSet[zipCodeIndex]["latitude"]
     longitude = zipCodeDataSet[zipCodeIndex]["longitude"]
-    print "WATCH FOR ERROR:",latitude,longitude
+    #print "WATCH FOR ERROR:",latitude,longitude
     return city, state, zipCode, float(latitude), float(longitude)
 
 def getBirthDate(age):
@@ -366,7 +366,9 @@ if __name__ == '__main__':
         print "Generating Training Set"
         customers = buildCustomerDB(numCustomers)
         writeCustomerDataset(customers,"customers-training")
-        transactions = generateTransactions(np.round(numTransactions*.2,0),True,customers)
+        transactions = generateTransactions(int(np.round(numTransactions*.1,0)),True,customers)
+
+
         writeTransactionDataset(transactions,"transactions-training")
         print "Generating Real Data"
         customers = buildCustomerDB(numCustomers)
