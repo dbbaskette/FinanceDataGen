@@ -170,7 +170,6 @@ def readZipCodeDataset():
             zipCodeData["latitude"] = row[5]
             zipCodeData["longitude"] = row[6]
             zipCodeDataset.append(zipCodeData)
-    print "ZipCodes Returned"
     return zipCodeDataset
 
 
@@ -360,7 +359,7 @@ def loadTrainingSets():
                 result = session.query("insert into customers_train VALUES (" + rowString + ");")
 
         result = session.query("drop table if exists transactions_train CASCADE;")
-        result = session.query("create table transactions_train(existingLines int,birthDate date,creditAmount int,guarantors int,creditDuration int,cardNumber text,existingLinesBank int,city text,typeResidence int,zip text,employmentType int,mostValAsset int,streetAddress text,state text,creditPercent int,phoneNumber text,latitude float,employmentLength int,accountBalanceStatus int,job text ,paymentStatusPrevCredit int,emailAddress text,purpose int,foreignWorker int,sexMaritalStatus int,creditability int,firstName text,accountBalance float,lastName text,age int,longitude float,savingsValue int,socialsecurityNumber text,dependents int,customerNumber bigint,durationAddess int,telephoneAvail int) with (appendonly=true) DISTRIBUTED RANDOMLY;")
+        result = session.query("create table transactions_train(city text,zip integer,amount float,flagged int,state text,longitude float,id text,streetaddress text,latitude float,transactiontimestamp timestamp,customerNumber bigint) with (appendonly=true) DISTRIBUTED RANDOMLY;")
 
         with open('./data/transactions-training.csv') as csvfile:
             reader = csv.reader(csvfile)
@@ -368,7 +367,7 @@ def loadTrainingSets():
             for row in reader:
                 rowString = "'" + "','".join(row) + "'"
                 result = session.query("insert into transactions_train VALUES (" + rowString + ");")
-
+    print "TRAINING DATA LOADED"
 
 if __name__ == '__main__':
     load_dotenv(dotenv_path)
