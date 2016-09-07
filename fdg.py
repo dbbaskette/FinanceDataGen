@@ -372,9 +372,9 @@ if __name__ == '__main__':
         writeTransactionDataset(transactions,"transactions-training")
         print "Generating Real Data"
         customers = buildCustomerDB(numCustomers)
-        writeCustomerDataset(customers)
+        writeCustomerDataset(customers,"customers")
         transactions = generateTransactions(numTransactions, True, customers)
-        writeTransactionDataset(transactions)
+        writeTransactionDataset(transactions,"transactions")
         if dbLoad:
             loadDatabase()
 
