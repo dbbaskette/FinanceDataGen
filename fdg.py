@@ -121,12 +121,12 @@ def transactionDistribution():
     values = np.random.triangular(-4000, transMin, transMax, 1)
     return np.round(np.abs(values),2)
 
-def writeCustomerDataset(customers):
+def writeCustomerDataset(customers,setName):
     print "Output Customer Dataset"
     # with open("./data/customers.dat", "wb") as customersFile:
     #     pickle.dump(customers,customersFile,2)
 
-    with open("./data/customers.csv", "wb") as customersFile:
+    with open("./data/"+setName+".csv", "wb") as customersFile:
         writer = csv.writer(customersFile,quotechar='"',quoting=csv.QUOTE_NONNUMERIC,delimiter=',')
 
         keys = vars(customers[0]).keys()
@@ -134,12 +134,12 @@ def writeCustomerDataset(customers):
         for customer in customers:
             writer.writerow(vars(customer).values())
 
-def writeTransactionDataset(customers):
+def writeTransactionDataset(customers,setName):
     print "Output Transaction Dataset"
     # with open("./data/customers.dat", "wb") as customersFile:
     #     pickle.dump(customers,customersFile,2)
 
-    with open("./data/transactions.csv", "wb") as customersFile:
+    with open("./data/"+setName+".csv", "wb") as customersFile:
         writer = csv.writer(customersFile,quotechar='"',quoting=csv.QUOTE_NONNUMERIC,delimiter=',')
 
         keys = vars(transactions[0]).keys()
@@ -303,7 +303,6 @@ def postTransaction(transaction):
 
     #jsonTransaction = json.dumps({"CCTRANS" :vars(transaction)})
     jsonTransaction = json.dumps(vars(transaction))
-    print jsonTransaction
     postURL = "http://" + os.environ.get("POSTSERVER") + ":" + os.environ.get("POSTPORT")
     headers = {'Content-type': 'application/json'}
     r = requests.post(postURL, data=jsonTransaction, headers=headers)
@@ -363,9 +362,16 @@ if __name__ == '__main__':
         writeCustomerDataset(customers)
     elif "all" in action:
         print dbLoad
+
+        print "Generating Training Set"
+        customers = buildCustomerDB(numCustomers)
+        writeCustomerDataset(customers,"customers-training")
+        transactions = generateTransactions(np.round(numTransactions*.2,0),True,customers)
+        writeTransactionDataset(transactions,"transactions-training")
+        print "Generating Real Data"
         customers = buildCustomerDB(numCustomers)
         writeCustomerDataset(customers)
-        transactions = generateTransactions(numTransactions,True,customers)
+        transactions = generateTransactions(numTransactions, True, customers)
         writeTransactionDataset(transactions)
         if dbLoad:
             loadDatabase()
