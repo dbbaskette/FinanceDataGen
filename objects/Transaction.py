@@ -23,5 +23,6 @@ class Transaction(object):
         self.transactionTimestamp =  0
         self.amount = 0
         self.id= 0
+        self.flagged = 0
 
 

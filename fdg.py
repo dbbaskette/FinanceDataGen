@@ -101,6 +101,7 @@ def generateTransactions(numTransactions,newCustomers,customers):
         transaction.transactionTimestamp = (str(datetime.now()))
         transaction.amount = (float(transactionDistribution()))
         transaction.id = time.strftime("%y%m%d%H%m%s")+str(x)
+        transaction.flagged = 0
         postTransaction(transaction)
         transactions.append(transaction)
     return transactions
@@ -302,7 +303,7 @@ def postTransaction(transaction):
 
     #jsonTransaction = json.dumps({"CCTRANS" :vars(transaction)})
     jsonTransaction = json.dumps(vars(transaction))
-
+    print jsonTransaction
     postURL = "http://" + os.environ.get("POSTSERVER") + ":" + os.environ.get("POSTPORT")
     headers = {'Content-type': 'application/json'}
     r = requests.post(postURL, data=jsonTransaction, headers=headers)
@@ -327,7 +328,7 @@ def loadDatabase():
         result = session.query("drop table if exists transactions CASCADE ;")
         result = session.query("drop table if exists transactions_hive CASCADE ;")
 
-        result = session.query("create table transactions(city text,zip integer,amount float,state text,longitude float,id text,streetaddress text,latitude float,transactiontimestamp timestamp,customerNumber bigint) with (appendonly=true) DISTRIBUTED RANDOMLY;")
+        result = session.query("create table transactions(city text,zip integer,amount float,flagged int,state text,longitude float,id text,streetaddress text,latitude float,transactiontimestamp timestamp,customerNumber bigint) with (appendonly=true) DISTRIBUTED RANDOMLY;")
         result = session.query("create table transactions_hive(like transactions);")
 
         result = session.query("drop external table if exists transactions_pxf CASCADE ;")
