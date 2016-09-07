@@ -359,9 +359,8 @@ def loadTrainingSets():
                 rowString = "'" + "','".join(row) + "'"
                 result = session.query("insert into customers_train VALUES (" + rowString + ");")
 
-    result = session.query("drop table if exists customers_train CASCADE ;")
-    result = session.query(
-        "create table customers_train(existingLines int,birthDate date,creditAmount int,guarantors int,creditDuration int,cardNumber text,existingLinesBank int,city text,typeResidence int,zip text,employmentType int,mostValAsset int,streetAddress text,state text,creditPercent int,phoneNumber text,latitude float,employmentLength int,accountBalanceStatus int,job text ,paymentStatusPrevCredit int,emailAddress text,purpose int,foreignWorker int,sexMaritalStatus int,creditability int,firstName text,accountBalance float,lastName text,age int,longitude float,savingsValue int,socialsecurityNumber text,dependents int,customerNumber bigint,durationAddess int,telephoneAvail int) with (appendonly=true) DISTRIBUTED RANDOMLY;")
+    result = session.query("drop table if exists transactions_train CASCADE ;")
+    result = session.query("create table transactions_train(existingLines int,birthDate date,creditAmount int,guarantors int,creditDuration int,cardNumber text,existingLinesBank int,city text,typeResidence int,zip text,employmentType int,mostValAsset int,streetAddress text,state text,creditPercent int,phoneNumber text,latitude float,employmentLength int,accountBalanceStatus int,job text ,paymentStatusPrevCredit int,emailAddress text,purpose int,foreignWorker int,sexMaritalStatus int,creditability int,firstName text,accountBalance float,lastName text,age int,longitude float,savingsValue int,socialsecurityNumber text,dependents int,customerNumber bigint,durationAddess int,telephoneAvail int) with (appendonly=true) DISTRIBUTED RANDOMLY;")
 
     with open('./data/transactions-train.csv') as csvfile:
         reader = csv.reader(csvfile)
