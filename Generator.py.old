@@ -5,7 +5,6 @@ from datetime import timedelta
 import csv,random
 #from objects import Customer
 import redis
-import time
 #import psycopg2
 import queries
 from logging.handlers import SysLogHandler
@@ -18,6 +17,7 @@ import argparse
 import numpy as np
 import scipy.stats as stats
 import random
+from datetime import time,timedelta
 
 
 
@@ -327,12 +327,6 @@ def buildCustomer(custNumber,age,train):
     customer.append(fake.phone_number())
     customer.append(fake.ssn())
 
-    #birthDate = fake.date_time_between_dates(datetime_start=datetime.date(1920,1,1), datetime_end=datetime.datetime.now() - timedelta(days=math.trunc(18*365.2425)), tzinfo=None)
-    #ageTemp = datetime.datetime.now() - birthDate
-    #customer.append(datetime.datetime.date(birthDate))
-
-    # 14 Customer Attributes
-    # 21 Banking Attributes
     customer.append(banking["age"])
     #customer.append(math.trunc((ageTemp.days + ageTemp.seconds / 86400) / 365.2425))
     customer.append(firstName[0]+lastName+"@"+fake.free_email_domain())
